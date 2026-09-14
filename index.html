@@ -106,6 +106,7 @@ nav{flex:1;padding:14px 0;overflow-y:auto;}
 .section{display:none;}.section.active{display:block;animation:fadeIn 0.25s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:transform 0.2s;}
 .stat-card:hover{transform:translateY(-2px);}
 .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
@@ -183,17 +184,58 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 .modal-header{padding:24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;}
 .close-btn{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;}.close-btn:hover{color:var(--text);}
+.btn-green{background:rgba(46,204,138,.15);color:var(--green);border:1px solid rgba(46,204,138,.25);}.btn-green:hover{background:rgba(46,204,138,.25);}
+.btn-purple{background:rgba(167,139,250,.15);color:var(--purple);border:1px solid rgba(167,139,250,.25);}.btn-purple:hover{background:rgba(167,139,250,.25);}
+.badge-done{background:rgba(46,204,138,.15);color:var(--green);border:1px solid rgba(46,204,138,.2);}
+.badge-pending{background:rgba(245,166,35,.15);color:var(--gold);border:1px solid rgba(245,166,35,.2);}
+.cmd-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;transition:border-color .2s;}
+.cmd-card:hover{border-color:rgba(167,139,250,.3);}
+.cmd-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px;flex-wrap:wrap;}
+.cmd-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.cmd-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.avance-progress{margin:10px 0;}
+.avance-bar-wrap{background:var(--bg3);border-radius:6px;height:8px;overflow:hidden;margin-top:6px;}
+.avance-bar{height:100%;border-radius:6px;transition:width .4s;background:linear-gradient(90deg,var(--purple),var(--blue));}
+.avance-bar.done{background:linear-gradient(90deg,var(--green),#1A9960);}
+.avances-list{font-size:11px;color:var(--muted2);margin-top:6px;}
+.avance-entry{display:flex;justify-content:space-between;padding:3px 0;}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 @media(max-width:900px){
   .sidebar{width:56px;}.logo-title,.logo-sub,.nav-section,.nav-item span:not(.nav-icon),.currency-badge span{display:none;}
   .main{margin-left:56px;}.stats-grid,.inv-grid{grid-template-columns:1fr 1fr;}
   .vendors-grid,.two-col{grid-template-columns:1fr;}.fg-2,.fg-3{grid-template-columns:1fr;}
   .content{padding:16px;}.topbar{padding:14px 16px;}
 }
+@media(max-width:640px){
+  body{display:block;}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:230px;transform:translateX(-100%);transition:transform .22s ease;z-index:300;box-shadow:0 0 0 9999px rgba(0,0,0,0);}
+  .sidebar.open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.5);}
+  .sidebar.open ~ .sidebar-scrim{display:block;}
+  .sidebar .logo-title,.sidebar .logo-sub,.sidebar .nav-section,.sidebar .nav-item span:not(.nav-icon),.sidebar .currency-badge span{display:inline;}
+  .sidebar{width:230px;}
+  .main{margin-left:0;}
+  .mobile-topbar{display:flex;}
+  .topbar{display:none;}
+  .content{padding:14px;}
+  .stats-grid,.inv-grid,.vendors-grid,.two-col,.fg-2,.fg-3,.three-col{grid-template-columns:1fr!important;}
+  .modal{max-width:94vw;border-radius:14px;}
+  .form-grid{padding:16px;}
+  .card-header{padding:14px 16px;}
+  .form-actions{padding:0 16px 16px;}
+  .table-scroll table{min-width:560px;}
+  .page-title{font-size:15px;}
+  .stat-value{font-size:17px;}
+}
+.sidebar-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:250;}
+.sidebar.open ~ .sidebar-scrim,.sidebar-scrim.open{display:block;}
+.mobile-topbar{display:none;position:sticky;top:0;z-index:150;background:rgba(14,15,19,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;gap:12px;}
+.mobile-menu-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 </style>
 </head>
 <body>
 
 <script src="vendor/supabase.js"></script>
+<div class="sidebar-scrim" id="sidebarScrim" onclick="toggleSidebar(false)"></div>
 <div id="authGate" style="position:fixed;inset:0;background:#0E0F13;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Epilogue',sans-serif;">
   <div style="text-align:center;padding:32px;">
     <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(90deg,#F5A623,#FFD07A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">GestoCom</div>
@@ -219,6 +261,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div class="nav-section">Transactions</div>
     <div class="nav-item" onclick="nav(this,'vente')"><span class="nav-icon">◉</span><span>Enregistrer vente</span></div>
     <div class="nav-item" onclick="nav(this,'historique')"><span class="nav-icon">≡</span><span>Historique ventes</span></div>
+    <div class="nav-item" onclick="nav(this,'commandes')"><span class="nav-icon">📦</span><span>Précommandes</span></div>
     <div class="nav-section">Finance</div>
     <div class="nav-item" onclick="nav(this,'bilan')"><span class="nav-icon">◈</span><span>Bilan financier</span></div>
     <div class="nav-item" onclick="nav(this,'ardoise')"><span class="nav-icon">✎</span><span>Ardoise</span></div>
@@ -227,6 +270,10 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 </aside>
 
 <main class="main">
+  <div class="mobile-topbar">
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="page-title" id="pageTitleMobile">Tableau de bord</div>
+  </div>
   <div class="topbar">
     <div class="page-title" id="pageTitle">Tableau de bord</div>
     <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--muted)" id="dateNow"></span><button onclick="exporterDonnees()" style="background:rgba(245,166,35,0.15);border:1px solid rgba(245,166,35,0.3);color:var(--gold);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:Epilogue">💾 Exporter</button><button onclick="importerDonnees()" style="background:rgba(91,140,255,0.15);border:1px solid rgba(91,140,255,0.3);color:var(--blue);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:Epilogue">📂 Importer</button></div>
@@ -258,10 +305,10 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
             <button class="btn btn-gold btn-sm" onclick="ouvrirModalProduit()">+ Ajouter produit</button>
           </div>
         </div>
-        <table>
+        <div class="table-scroll"><table>
           <thead><tr><th>Produit</th><th>Catégorie</th><th>Prix achat</th><th>Prix cession</th><th>Marge cession</th><th>Stock</th><th>Statut</th><th>Actions</th></tr></thead>
           <tbody id="tbody-produits"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Aucun produit</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
     </div>
 
@@ -273,13 +320,13 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
       <div class="inv-grid" id="inv-totaux"></div>
       <div class="card">
         <div class="card-header"><div class="card-title">Par catégorie</div></div>
-        <table><thead><tr><th>Catégorie</th><th>Nb produits</th><th>Unités stock</th><th>Valeur achat</th><th>Valeur cession</th><th>Bén. prévisionnel</th></tr></thead>
-        <tbody id="inv-cat-tbody"></tbody></table>
+        <div class="table-scroll"><table><thead><tr><th>Catégorie</th><th>Nb produits</th><th>Unités stock</th><th>Valeur achat</th><th>Valeur cession</th><th>Bén. prévisionnel</th></tr></thead>
+        <tbody id="inv-cat-tbody"></tbody></table></div>
       </div>
       <div class="card">
         <div class="card-header"><div class="card-title">Par produit — détail complet</div></div>
-        <table><thead><tr><th>Produit</th><th>Stock</th><th>Prix achat</th><th>Prix cession</th><th>Val. achat totale</th><th>Val. cession totale</th><th>Bén. prévisionnel</th><th>Statut</th></tr></thead>
-        <tbody id="inv-produit-tbody"></tbody></table>
+        <div class="table-scroll"><table><thead><tr><th>Produit</th><th>Stock</th><th>Prix achat</th><th>Prix cession</th><th>Val. achat totale</th><th>Val. cession totale</th><th>Bén. prévisionnel</th><th>Statut</th></tr></thead>
+        <tbody id="inv-produit-tbody"></tbody></table></div>
       </div>
     </div>
 
@@ -342,12 +389,28 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
             <select id="filter-vendeur" onchange="renderHistorique()" style="padding:7px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Epilogue',sans-serif;font-size:12px;outline:none"><option value="">Tous vendeurs</option></select>
           </div>
         </div>
-        <table>
+        <div class="table-scroll"><table>
           <thead><tr><th>Date</th><th>Produit</th><th>Vendeur</th><th>Qté</th><th>Prix vente</th><th>CA</th><th>Coût achat</th><th>Bénéfice</th><th></th></tr></thead>
           <tbody id="tbody-historique"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Aucune vente</td></tr></tbody>
-        </table>
+        </table></div>
         <div style="padding:14px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted2)" id="histo-footer"></div>
       </div>
+    </div>
+
+    <!-- COMMANDES -->
+    <div class="section" id="sec-commandes">
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-header">
+          <div class="card-title">📦 Précommandes</div>
+          <button class="btn btn-purple btn-sm" onclick="ouvrirModalCommande()">+ Nouvelle précommande</button>
+        </div>
+      </div>
+      <div class="three-col" style="margin-bottom:18px">
+        <div class="stat-card bl"><div class="stat-glow"></div><div class="stat-label">Précommandes actives</div><div class="stat-value" id="cmd-nb-actives" style="color:var(--blue)">0</div><div class="stat-sub">en attente de solde</div></div>
+        <div class="stat-card gr"><div class="stat-glow"></div><div class="stat-label">Commandes soldées</div><div class="stat-value" id="cmd-nb-done" style="color:var(--green)">0</div><div class="stat-sub">payées intégralement</div></div>
+        <div class="stat-card g"><div class="stat-glow"></div><div class="stat-label">Avances reçues</div><div class="stat-value" id="cmd-avances" style="color:var(--gold2)">0</div><div class="stat-sub">FCFA encaissés</div></div>
+      </div>
+      <div id="cmd-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Aucune précommande</div></div></div>
     </div>
 
     <!-- BILAN -->
@@ -360,10 +423,10 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
       </div>
       <div class="two-col">
         <div class="card"><div class="card-header"><div class="card-title">Performance par vendeur</div></div>
-          <table><thead><tr><th>Vendeur</th><th>Ventes</th><th>CA</th><th>Bénéfice</th><th>Marge</th></tr></thead><tbody id="tbody-bilan-vendeur"><tr><td colspan="5" style="text-align:center;padding:25px;color:var(--muted)">—</td></tr></tbody></table>
+          <div class="table-scroll"><table><thead><tr><th>Vendeur</th><th>Ventes</th><th>CA</th><th>Bénéfice</th><th>Marge</th></tr></thead><tbody id="tbody-bilan-vendeur"><tr><td colspan="5" style="text-align:center;padding:25px;color:var(--muted)">—</td></tr></tbody></table></div>
         </div>
         <div class="card"><div class="card-header"><div class="card-title">Performance par produit</div></div>
-          <table><thead><tr><th>Produit</th><th>Qté</th><th>CA</th><th>Bénéfice</th></tr></thead><tbody id="tbody-bilan-produit"><tr><td colspan="4" style="text-align:center;padding:25px;color:var(--muted)">—</td></tr></tbody></table>
+          <div class="table-scroll"><table><thead><tr><th>Produit</th><th>Qté</th><th>CA</th><th>Bénéfice</th></tr></thead><tbody id="tbody-bilan-produit"><tr><td colspan="4" style="text-align:center;padding:25px;color:var(--muted)">—</td></tr></tbody></table></div>
         </div>
       </div>
     </div>
@@ -422,6 +485,36 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
   </div>
 </div>
 
+<!-- MODAL COMMANDE -->
+<div class="overlay" id="overlay-commande">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-cmd-title">Nouvelle précommande</div><button class="close-btn" onclick="closeModal('overlay-commande')">✕</button></div>
+    <div class="form-grid fg-2">
+      <div class="form-group full"><label>Client / Nom *</label><input type="text" id="mc-client" placeholder="Nom du client"></div>
+      <div class="form-group full"><label>Produit commandé *</label><select id="mc-produit"><option value="">— Choisir —</option></select></div>
+      <div class="form-group"><label>Quantité</label><input type="number" id="mc-qte" value="1" min="1"></div>
+      <div class="form-group"><label>Prix total (FCFA) *</label><input type="number" id="mc-prix" placeholder="Prix de vente prévu" oninput="updateCmdRecap()"></div>
+      <div class="form-group"><label>Avance initiale (FCFA)</label><input type="number" id="mc-avance" placeholder="0" value="0" oninput="updateCmdRecap()"></div>
+      <div class="form-group"><label>Téléphone client</label><input type="text" id="mc-tel" placeholder="+225 ..."></div>
+      <div class="form-group full"><label>Note</label><input type="text" id="mc-note" placeholder="Détails, remarques..."></div>
+    </div>
+    <div id="cmd-recap-preview" style="padding:0 24px 20px"></div>
+    <div class="form-actions"><button class="btn btn-purple" onclick="sauvegarderCommande()">✓ Créer la précommande</button><button class="btn btn-ghost" onclick="closeModal('overlay-commande')">Annuler</button></div>
+  </div>
+</div>
+
+<!-- MODAL AVANCE -->
+<div class="overlay" id="overlay-avance">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title" id="avance-modal-title">Ajouter une avance</div><button class="close-btn" onclick="closeModal('overlay-avance')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Montant de l'avance (FCFA) *</label><input type="number" id="avance-montant" placeholder="0"></div>
+      <div id="avance-info" style="padding:10px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted2)"></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-purple" onclick="validerAvance()">✓ Enregistrer l'avance</button><button class="btn btn-ghost" onclick="closeModal('overlay-avance')">Annuler</button></div>
+  </div>
+</div>
+
 <!-- MODAL CONFIRM -->
 <div class="overlay" id="overlay-confirm">
   <div class="modal" style="max-width:400px">
@@ -461,20 +554,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 function esc(s){ const d=document.createElement('div'); d.textContent = s==null?'':String(s); return d.innerHTML; }
-let DB={produits:[],vendeurs:[],ventes:[]};
-let editProduitId=null,editVendeurId=null,confirmCb=null;
+let DB={produits:[],vendeurs:[],ventes:[],commandes:[]};
+let editProduitId=null,editVendeurId=null,confirmCb=null,currentCmdId=null;
 
 async function loadDB(){
   const uid = await getUserId();
   if(!uid) return;
-  const [{data:produits},{data:vendeurs},{data:ventes}] = await Promise.all([
+  const [{data:produits},{data:vendeurs},{data:ventes},{data:commandes}] = await Promise.all([
     sb.from('produits').select('*').eq('user_id',uid),
     sb.from('vendeurs').select('*').eq('user_id',uid),
-    sb.from('ventes').select('*').eq('user_id',uid).order('created_at',{ascending:false})
+    sb.from('ventes').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('commandes').select('*').eq('user_id',uid).order('created_at',{ascending:false})
   ]);
   DB.produits=(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte}));
   DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note}));
   DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note}));
+  DB.commandes=(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}));
 }
 async function saveDB(){
   const uid = await getUserId();
@@ -482,9 +577,11 @@ async function saveDB(){
   await sb.from('produits').delete().eq('user_id', uid);
   await sb.from('vendeurs').delete().eq('user_id', uid);
   await sb.from('ventes').delete().eq('user_id', uid);
+  await sb.from('commandes').delete().eq('user_id', uid);
   if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
   if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note})));
   if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note})));
+  if(DB.commandes.length) await sb.from('commandes').insert(DB.commandes.map(c=>({id:String(c.id),user_id:uid,client:c.client,tel:c.tel,produit_id:c.produitId?String(c.produitId):null,produit_nom:c.produitNom,qte:c.qte,prix_total:c.prixTotal,note:c.note,avances:c.avances||[],statut:c.statut,date_creation:c.dateCreation})));
 }
 
 const fcfa=n=>Math.round(n).toLocaleString('fr-FR')+' FCFA';
@@ -494,7 +591,7 @@ function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('fr-
 const aC=[['#F5A623','#E8752A'],['#2ECC8A','#1A9960'],['#5B8CFF','#3A5FCC'],['#FF5C5C','#CC2A2A'],['#A78BFA','#7C3AED'],['#E8C12A','#BF9A00']];
 function avatarGrad(i){const c=aC[i%aC.length];return`background:linear-gradient(135deg,${c[0]},${c[1]})`;}
 
-const pageTitles={dashboard:'Tableau de bord',produits:'Produits & Stocks',inventaire:'Inventaire & Session',vendeurs:'Vendeurs',vente:'Enregistrer une vente',historique:'Historique des ventes',bilan:'Bilan financier',ardoise:'Ardoise'};
+const pageTitles={dashboard:'Tableau de bord',produits:'Produits & Stocks',inventaire:'Inventaire & Session',vendeurs:'Vendeurs',vente:'Enregistrer une vente',historique:'Historique des ventes',commandes:'Précommandes',bilan:'Bilan financier',ardoise:'Ardoise'};
 
 function nav(el,section){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -502,14 +599,26 @@ function nav(el,section){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+section).classList.add('active');
   document.getElementById('pageTitle').textContent=pageTitles[section];
-  const fn={dashboard:renderDashboard,produits:renderProduits,inventaire:renderInventaire,vendeurs:renderVendeurs,vente:initVenteForm,historique:renderHistorique,bilan:renderBilan,ardoise:renderArdoise};
+  document.getElementById('pageTitleMobile').textContent=pageTitles[section];
+  const fn={dashboard:renderDashboard,produits:renderProduits,inventaire:renderInventaire,vendeurs:renderVendeurs,vente:initVenteForm,historique:renderHistorique,commandes:renderCommandes,bilan:renderBilan,ardoise:renderArdoise};
   if(fn[section])fn[section]();
+  toggleSidebar(false);
+}
+function toggleSidebar(force){
+  const sb=document.querySelector('.sidebar');
+  const open=force!==undefined?force:!sb.classList.contains('open');
+  sb.classList.toggle('open',open);
+  document.getElementById('sidebarScrim').classList.toggle('open',open);
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function openModal(id){document.getElementById(id).classList.add('open');}
 
 // ===== PRODUITS =====
+function precommandesPourProduit(pid){
+  return DB.commandes.filter(c=>c.produitId===pid&&c.statut==='pending').reduce((s,c)=>s+c.qte,0);
+}
+
 function ouvrirModalProduit(id){
   editProduitId=id||null;
   const p=id?DB.produits.find(x=>x.id===id):null;
@@ -729,6 +838,132 @@ function renderHistorique(){
 function supprimerVente(id){confirm2('Supprimer cette vente ?','Le stock ne sera pas restauré automatiquement.',()=>{DB.ventes=DB.ventes.filter(v=>v.id!==id);saveDB();renderHistorique();renderDashboard();});}
 
 // ===== DASHBOARD =====
+function ouvrirModalCommande(){
+  const sp=document.getElementById('mc-produit');
+  sp.innerHTML='<option value="">— Choisir —</option>'+DB.produits.map(p=>`<option value="${p.id}">${p.nom} (stock: ${p.stock})</option>`).join('');
+  ['mc-client','mc-tel','mc-note'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('mc-qte').value=1;
+  document.getElementById('mc-prix').value='';
+  document.getElementById('mc-avance').value=0;
+  document.getElementById('cmd-recap-preview').innerHTML='';
+  openModal('overlay-commande');
+}
+
+function updateCmdRecap(){
+  const prix=parseFloat(document.getElementById('mc-prix').value)||0;
+  const avance=parseFloat(document.getElementById('mc-avance').value)||0;
+  const reste=Math.max(0,prix-avance);
+  const pct=prix>0?Math.min(100,(avance/prix)*100).toFixed(0):0;
+  document.getElementById('cmd-recap-preview').innerHTML=prix>0?`
+    <div style="margin:0 0 16px;padding:12px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--muted2)">Avance initiale</span><span style="color:var(--gold2)">${fcfa(avance)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px"><span style="color:var(--muted2)">Reste à payer</span><span style="color:var(--red)">${fcfa(reste)}</span></div>
+      <div style="background:var(--bg);border-radius:6px;height:7px;overflow:hidden"><div style="height:100%;border-radius:6px;width:${pct}%;background:linear-gradient(90deg,var(--purple),var(--blue))"></div></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">${pct}% payé</div>
+    </div>`:'';
+}
+
+async function sauvegarderCommande(){
+  const client=document.getElementById('mc-client').value.trim();
+  const pid=document.getElementById('mc-produit').value;
+  const prix=parseFloat(document.getElementById('mc-prix').value)||0;
+  const avance=parseFloat(document.getElementById('mc-avance').value)||0;
+  const qte=parseInt(document.getElementById('mc-qte').value)||1;
+  if(!client){alert('Entrez le nom du client');return;}
+  if(!pid){alert('Choisissez un produit');return;}
+  if(prix<=0){alert('Entrez le prix total');return;}
+  const p=DB.produits.find(x=>x.id===pid);
+  const cmd={
+    id:uid(),client,tel:document.getElementById('mc-tel').value,
+    produitId:pid,produitNom:p?p.nom:'?',qte,
+    prixTotal:prix,note:document.getElementById('mc-note').value,
+    avances:avance>0?[{montant:avance,date:new Date().toISOString().split('T')[0],note:'Avance initiale'}]:[],
+    statut:'pending',dateCreation:new Date().toISOString().split('T')[0]
+  };
+  DB.commandes.unshift(cmd);await saveDB();closeModal('overlay-commande');renderCommandes();
+  showToast(`✅ Précommande créée pour ${client}`);
+}
+
+function renderCommandes(){
+  const actives=DB.commandes.filter(c=>c.statut==='pending');
+  const done=DB.commandes.filter(c=>c.statut==='done');
+  const totalAvances=DB.commandes.reduce((s,c)=>s+(c.avances||[]).reduce((a,av)=>a+av.montant,0),0);
+  document.getElementById('cmd-nb-actives').textContent=actives.length;
+  document.getElementById('cmd-nb-done').textContent=done.length;
+  document.getElementById('cmd-avances').textContent=Math.round(totalAvances).toLocaleString('fr-FR');
+  const list=document.getElementById('cmd-list');
+  if(!DB.commandes.length){list.innerHTML=`<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Aucune précommande</div></div>`;return;}
+  list.innerHTML=DB.commandes.map(c=>{
+    const totalPaye=(c.avances||[]).reduce((s,a)=>s+a.montant,0);
+    const reste=Math.max(0,c.prixTotal-totalPaye);
+    const pct=c.prixTotal>0?Math.min(100,(totalPaye/c.prixTotal)*100):0;
+    const isDone=c.statut==='done';
+    return`<div class="cmd-card" style="${isDone?'opacity:.7':''}">
+      <div class="cmd-header">
+        <div>
+          <div class="cmd-name">${c.client} ${c.tel?`<span style="font-size:11px;color:var(--muted);font-weight:400">· ${c.tel}</span>`:''}</div>
+          <div class="cmd-meta">${c.produitNom} ×${c.qte} · Créée le ${fmtDate(c.dateCreation)}</div>
+        </div>
+        <span class="badge ${isDone?'badge-done':'badge-pending'}">${isDone?'✅ Soldée':'⏳ En attente'}</span>
+      </div>
+      ${c.note?`<div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-style:italic">📝 ${c.note}</div>`:''}
+      <div class="avance-progress">
+        <div style="display:flex;justify-content:space-between;font-size:12px">
+          <span style="color:var(--muted2)">Avances : <strong style="color:var(--purple)">${fcfa(totalPaye)}</strong> / ${fcfa(c.prixTotal)}</span>
+          <span style="color:${isDone?'var(--green)':'var(--red)'}">Reste : <strong>${fcfa(reste)}</strong></span>
+        </div>
+        <div class="avance-bar-wrap"><div class="avance-bar ${isDone?'done':''}" style="width:${pct.toFixed(0)}%"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">${pct.toFixed(0)}% payé</div>
+      </div>
+      ${(c.avances||[]).length?`<div class="avances-list">${c.avances.map(a=>`<div class="avance-entry"><span>💰 ${a.note||'Avance'} (${fmtDate(a.date)})</span><span style="color:var(--green)">+${Math.round(a.montant).toLocaleString('fr-FR')} FCFA</span></div>`).join('')}</div>`:''}
+      <div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap">
+        ${!isDone?`<button class="btn btn-purple btn-sm" onclick="ouvrirModalAvance('${c.id}')">+ Ajouter avance</button>`:''}
+        ${!isDone?`<button class="btn btn-green btn-sm" onclick="solderCommande('${c.id}')">✓ Solder manuellement</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="supprimerCommande('${c.id}')">✕ Supprimer</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ouvrirModalAvance(cmdId){
+  currentCmdId=cmdId;
+  const c=DB.commandes.find(x=>x.id===cmdId);
+  if(!c)return;
+  const totalPaye=(c.avances||[]).reduce((s,a)=>s+a.montant,0);
+  const reste=Math.max(0,c.prixTotal-totalPaye);
+  document.getElementById('avance-modal-title').textContent=`Avance — ${c.client}`;
+  document.getElementById('avance-montant').value='';
+  document.getElementById('avance-info').innerHTML=`<strong>${c.produitNom}</strong> ×${c.qte}<br>Prix total : ${fcfa(c.prixTotal)}<br>Déjà payé : <span style="color:var(--purple)">${fcfa(totalPaye)}</span><br>Reste : <span style="color:var(--red)">${fcfa(reste)}</span>`;
+  openModal('overlay-avance');
+}
+
+async function validerAvance(){
+  if(!currentCmdId)return;
+  const montant=parseFloat(document.getElementById('avance-montant').value)||0;
+  if(montant<=0){alert('Entrez un montant valide');return;}
+  const c=DB.commandes.find(x=>x.id===currentCmdId);
+  if(!c)return;
+  if(!c.avances)c.avances=[];
+  c.avances.push({montant,date:new Date().toISOString().split('T')[0],note:`Avance n°${c.avances.length+1}`});
+  const totalPaye=c.avances.reduce((s,a)=>s+a.montant,0);
+  closeModal('overlay-avance');
+  if(totalPaye>=c.prixTotal){
+    c.statut='done';await saveDB();renderCommandes();
+    showToast(`🎉 Précommande de ${c.client} soldée ! Paiement complet atteint.`);
+  } else {
+    const reste=c.prixTotal-totalPaye;
+    await saveDB();renderCommandes();
+    showToast(`✅ Avance de ${fcfa(montant)} enregistrée. Reste : ${fcfa(reste)}`);
+  }
+}
+
+function solderCommande(id){
+  confirm2('Solder cette commande ?','La commande sera marquée comme entièrement payée.',async()=>{
+    const c=DB.commandes.find(x=>x.id===id);if(c){c.statut='done';await saveDB();renderCommandes();showToast('✅ Commande soldée');}
+  });
+}
+function supprimerCommande(id){confirm2('Supprimer cette précommande ?','Action irréversible.',async()=>{DB.commandes=DB.commandes.filter(x=>x.id!==id);await saveDB();renderCommandes();});}
+
 function renderDashboard(){
   const ca=DB.ventes.reduce((s,v)=>s+v.ca,0),ben=DB.ventes.reduce((s,v)=>s+v.benefice,0),cout=DB.ventes.reduce((s,v)=>s+v.coutAchat,0);
   document.getElementById('d-ca').textContent=Math.round(ca).toLocaleString('fr-FR');
@@ -746,7 +981,7 @@ function renderDashboard(){
     tv.innerHTML='<div style="padding:16px">'+ranked.map((v,i)=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${i===0?'🥇':i===1?'🥈':'🥉'} ${esc(v.nom)} <span style="color:var(--muted);font-size:10px">(${v.n} vente${v.n>1?'s':''})</span></span><span style="color:var(--gold2)">${fcfa(v.ca)}</span></div><div class="progress-wrap"><div class="progress-fill" style="width:${(v.ca/maxCA*100).toFixed(0)}%;background:var(--gold)"></div></div></div>`).join('')+'</div>';}
   const lv=document.getElementById('d-last-ventes');
   if(!DB.ventes.length)lv.innerHTML=`<div class="empty"><div class="empty-icon">🛍</div><div class="empty-text">Aucune vente</div></div>`;
-  else lv.innerHTML=`<table><tbody>`+DB.ventes.slice(0,6).map(v=>`<tr><td style="font-size:10px;color:var(--muted2)">${fmtDate(v.date)}</td><td><strong style="font-size:12px">${v.produitNom}</strong></td><td style="font-size:12px;color:var(--muted2)">${v.vendeurNom}</td><td style="font-size:11px;text-align:center">${v.qte}x</td><td style="color:var(--gold2)">${fcfa(v.ca)}</td><td class="${v.benefice>=0?'profit-pos':'profit-neg'}" style="font-size:12px">${v.benefice>=0?'+':''}${fcfa(v.benefice)}</td></tr>`).join('')+`</tbody></table>`;
+  else lv.innerHTML=`<div class="table-scroll"><table><tbody>`+DB.ventes.slice(0,6).map(v=>`<tr><td style="font-size:10px;color:var(--muted2)">${fmtDate(v.date)}</td><td><strong style="font-size:12px">${v.produitNom}</strong></td><td style="font-size:12px;color:var(--muted2)">${v.vendeurNom}</td><td style="font-size:11px;text-align:center">${v.qte}x</td><td style="color:var(--gold2)">${fcfa(v.ca)}</td><td class="${v.benefice>=0?'profit-pos':'profit-neg'}" style="font-size:12px">${v.benefice>=0?'+':''}${fcfa(v.benefice)}</td></tr>`).join('')+`</tbody></table></div>`;
 }
 
 // ===== BILAN =====
