@@ -193,6 +193,19 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 </head>
 <body>
 
+<script src="vendor/supabase.js"></script>
+<div id="authGate" style="position:fixed;inset:0;background:#0E0F13;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Epilogue',sans-serif;">
+  <div style="text-align:center;padding:32px;">
+    <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(90deg,#F5A623,#FFD07A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">GestoCom</div>
+    <div style="color:#9099AA;font-size:13px;margin-bottom:28px;">Gestion Commerce</div>
+    <button id="btnGoogleLogin" style="background:#fff;color:#1F1F1F;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:10px;font-family:'Epilogue',sans-serif;">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.85.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+      Se connecter avec Google
+    </button>
+    <div id="authError" style="color:#FF5C5C;font-size:12px;margin-top:16px;"></div>
+  </div>
+</div>
+
 <aside class="sidebar">
   <div class="logo"><div class="logo-title">GestoCom</div><div class="logo-sub">Gestion Commerce</div></div>
   <nav>
@@ -419,12 +432,60 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 </div>
 
 <script>
+const sb = supabase.createClient('https://jwfnuebleyhnjejblknv.supabase.co', 'sb_publishable_1A9gsPnF1UnOOlLPoSUvOg_7oTQi_ei');
+
+async function getUserId(){
+  const {data:{session}} = await sb.auth.getSession();
+  return session ? session.user.id : null;
+}
+
+async function demarrerApp(){
+  document.getElementById('authGate').style.display='none';
+  await ardLoad();
+  await loadDB();
+  document.getElementById('dateNow').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  renderDashboard();
+}
+
+sb.auth.onAuthStateChange((event, session)=>{
+  if(session){ demarrerApp(); } else { document.getElementById('authGate').style.display='flex'; }
+});
+sb.auth.getSession().then(({data:{session}})=>{ if(session){ demarrerApp(); } });
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('btnGoogleLogin');
+  if(btn) btn.addEventListener('click', async ()=>{
+    const {error} = await sb.auth.signInWithOAuth({provider:'google', options:{redirectTo: window.location.href}});
+    if(error) document.getElementById('authError').textContent = 'Erreur de connexion : '+error.message;
+  });
+});
+
 function esc(s){ const d=document.createElement('div'); d.textContent = s==null?'':String(s); return d.innerHTML; }
 let DB={produits:[],vendeurs:[],ventes:[]};
 let editProduitId=null,editVendeurId=null,confirmCb=null;
 
-function loadDB(){try{const s=localStorage.getItem('gestocom_v2');if(s)DB=JSON.parse(s);}catch(e){}}
-function saveDB(){localStorage.setItem('gestocom_v2',JSON.stringify(DB));}
+async function loadDB(){
+  const uid = await getUserId();
+  if(!uid) return;
+  const [{data:produits},{data:vendeurs},{data:ventes}] = await Promise.all([
+    sb.from('produits').select('*').eq('user_id',uid),
+    sb.from('vendeurs').select('*').eq('user_id',uid),
+    sb.from('ventes').select('*').eq('user_id',uid).order('created_at',{ascending:false})
+  ]);
+  DB.produits=(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte}));
+  DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note}));
+  DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note}));
+}
+async function saveDB(){
+  const uid = await getUserId();
+  if(!uid) return;
+  await sb.from('produits').delete().eq('user_id', uid);
+  await sb.from('vendeurs').delete().eq('user_id', uid);
+  await sb.from('ventes').delete().eq('user_id', uid);
+  if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
+  if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note})));
+  if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note})));
+}
 
 const fcfa=n=>Math.round(n).toLocaleString('fr-FR')+' FCFA';
 const pct=(a,b)=>b?((a/b)*100).toFixed(1)+'%':'—';
@@ -703,7 +764,7 @@ function renderBilan(){
 
 // ===== EXPORT / IMPORT =====
 function exporterDonnees(){
-  const data=JSON.stringify(DB,null,2);
+  const data=JSON.stringify(Object.assign({},DB,{ardoise:ardData}),null,2);
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -723,7 +784,10 @@ function importerDonnees(){
       try{
         const data=JSON.parse(ev.target.result);
         if(!data.produits||!data.vendeurs||!data.ventes){alert('Fichier invalide');return;}
-        DB=data;saveDB();renderDashboard();
+        DB={produits:data.produits,vendeurs:data.vendeurs,ventes:data.ventes};
+        saveDB();
+        if(data.ardoise && data.ardoise.clients){ardData=data.ardoise;ardSaveData();}
+        renderDashboard();
         showToast('✅ '+data.produits.length+' produits, '+data.vendeurs.length+' vendeurs, '+data.ventes.length+' ventes importés !');
       }catch(e){alert('Erreur : fichier JSON invalide');}
     };
@@ -741,8 +805,26 @@ let ardData={clients:[]};
 let ardQuery='';
 let ardCurrentMode='new';
 
-function ardLoad(){try{const s=localStorage.getItem('gestocom_ardoise_v1');if(s)ardData=JSON.parse(s);}catch(e){}}
-function ardSaveData(){localStorage.setItem('gestocom_ardoise_v1',JSON.stringify(ardData));}
+async function ardLoad(){
+  const uid = await getUserId();
+  if(!uid) return;
+  const [{data:clients},{data:transactions}] = await Promise.all([
+    sb.from('clients_ardoise').select('*').eq('user_id',uid),
+    sb.from('transactions_ardoise').select('*').eq('user_id',uid)
+  ]);
+  ardData.clients=(clients||[]).map(c=>({id:c.id,nom:c.nom,tel:c.tel,transactions:(transactions||[]).filter(t=>t.client_id===c.id).map(t=>({id:t.id,type:t.type,montant:t.montant,produit:t.produit||'',date:t.date,dateEcheance:t.date_echeance||''}))}));
+}
+async function ardSaveData(){
+  const uid = await getUserId();
+  if(!uid) return;
+  await sb.from('transactions_ardoise').delete().eq('user_id', uid);
+  await sb.from('clients_ardoise').delete().eq('user_id', uid);
+  if(ardData.clients.length){
+    await sb.from('clients_ardoise').insert(ardData.clients.map(c=>({id:String(c.id),user_id:uid,nom:c.nom,tel:c.tel})));
+    const allTx=ardData.clients.flatMap(c=>(c.transactions||[]).map(t=>({id:String(t.id),user_id:uid,client_id:String(c.id),type:t.type,montant:t.montant,produit:t.produit||null,date:t.date,date_echeance:t.dateEcheance||null})));
+    if(allTx.length) await sb.from('transactions_ardoise').insert(allTx);
+  }
+}
 function ardUid(){return Math.random().toString(36).slice(2,10);}
 function ardFmtFCFA(n){return new Intl.NumberFormat('fr-FR').format(Math.round(n))+' F';}
 function ardTodayISO(){return new Date().toISOString().slice(0,10);}
@@ -867,10 +949,7 @@ function ardDeleteClient(clientId){
 }
 
 // ===== INIT =====
-ardLoad();
-loadDB();
-document.getElementById('dateNow').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-renderDashboard();
+// Le demarrage de l'app (chargement des donnees + rendu) est declenche par demarrerApp() une fois l'utilisateur authentifie (voir plus haut).
 </script>
 </body>
 </html>
