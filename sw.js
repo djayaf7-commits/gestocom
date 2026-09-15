@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gestocom-v1';
+const CACHE_NAME = 'gestocom-v2';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/favicon.png'];
 
 self.addEventListener('install', e => {
