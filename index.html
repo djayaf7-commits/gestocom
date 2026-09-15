@@ -222,6 +222,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
   .topbar{display:none;}
   .content{padding:14px;}
   .stats-grid,.inv-grid,.two-col,.three-col{grid-template-columns:1fr 1fr!important;gap:10px!important;}
+  .perf-grid{grid-template-columns:1fr!important;}
   .vendors-grid{grid-template-columns:1fr!important;}
   .fg-2,.fg-3{grid-template-columns:1fr!important;}
   .stat-card{padding:14px!important;}
@@ -428,7 +429,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
         <div class="stat-card rd"><div class="stat-glow"></div><div class="stat-label">Coût achats</div><div class="stat-value" id="b-cout">0</div><div class="stat-sub">FCFA</div></div>
         <div class="stat-card bl"><div class="stat-glow"></div><div class="stat-label">Taux de marge</div><div class="stat-value" id="b-marge">0%</div><div class="stat-sub">Bén. / CA</div></div>
       </div>
-      <div class="two-col">
+      <div class="two-col perf-grid">
         <div class="card"><div class="card-header"><div class="card-title">Performance par vendeur</div></div>
           <div class="table-scroll"><table><thead><tr><th>Vendeur</th><th>Ventes</th><th>CA</th><th>Bénéfice</th><th>Marge</th></tr></thead><tbody id="tbody-bilan-vendeur"><tr><td colspan="5" style="text-align:center;padding:25px;color:var(--muted)">—</td></tr></tbody></table></div>
         </div>
