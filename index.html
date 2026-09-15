@@ -540,7 +540,21 @@ const sb = supabase.createClient('https://jwfnuebleyhnjejblknv.supabase.co', 'sb
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'}).then(reg => {
+      // Verifie s'il existe une nouvelle version a chaque ouverture/reprise de l'app
+      reg.update();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update();
+      });
+    }).catch(()=>{});
+
+    // Des qu'une nouvelle version prend le controle, on recharge une seule fois
+    let refreshed = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshed) return;
+      refreshed = true;
+      window.location.reload();
+    });
   });
 }
 
