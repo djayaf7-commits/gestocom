@@ -217,7 +217,13 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
   .mobile-topbar{display:flex;}
   .topbar{display:none;}
   .content{padding:14px;}
-  .stats-grid,.inv-grid,.vendors-grid,.two-col,.fg-2,.fg-3,.three-col{grid-template-columns:1fr!important;}
+  .stats-grid,.inv-grid,.two-col,.three-col{grid-template-columns:1fr 1fr!important;gap:10px!important;}
+  .vendors-grid{grid-template-columns:1fr!important;}
+  .fg-2,.fg-3{grid-template-columns:1fr!important;}
+  .stat-card{padding:14px!important;}
+  .stat-label{font-size:10px!important;}
+  .stat-value{font-size:16px!important;}
+  .stat-sub{font-size:9px!important;}
   .modal{max-width:94vw;border-radius:14px;}
   .form-grid{padding:16px;}
   .card-header{padding:14px 16px;}
@@ -261,7 +267,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div class="nav-section">Transactions</div>
     <div class="nav-item" onclick="nav(this,'vente')"><span class="nav-icon">◉</span><span>Enregistrer vente</span></div>
     <div class="nav-item" onclick="nav(this,'historique')"><span class="nav-icon">≡</span><span>Historique ventes</span></div>
-    <div class="nav-item" onclick="nav(this,'commandes')"><span class="nav-icon">📦</span><span>Précommandes</span></div>
+    <div class="nav-item" onclick="nav(this,'commandes')"><span class="nav-icon">⧗</span><span>Précommandes</span></div>
     <div class="nav-item" onclick="nav(this,'ardoise')"><span class="nav-icon">✎</span><span>Ardoise</span></div>
     <div class="nav-section">Finance</div>
     <div class="nav-item" onclick="nav(this,'bilan')"><span class="nav-icon">◈</span><span>Bilan financier</span></div>
