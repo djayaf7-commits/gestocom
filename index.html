@@ -202,7 +202,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .sidebar-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:250;}
 .sidebar.open ~ .sidebar-scrim,.sidebar-scrim.open{display:block;}
-.mobile-topbar{display:none;position:sticky;top:0;z-index:150;background:rgba(14,15,19,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;gap:12px;}
+.mobile-topbar{display:none;position:sticky;top:0;z-index:200;background:#0E0F13;border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;gap:12px;overflow:hidden;isolation:isolate;}
 .mobile-menu-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 @media(max-width:900px){
   .sidebar{width:56px;}.logo-title,.logo-sub,.nav-section,.nav-item span:not(.nav-icon),.currency-badge span{display:none;}
