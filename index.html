@@ -535,6 +535,12 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 <script>
 const sb = supabase.createClient('https://jwfnuebleyhnjejblknv.supabase.co', 'sb_publishable_1A9gsPnF1UnOOlLPoSUvOg_7oTQi_ei');
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+
 async function getUserId(){
   const {data:{session}} = await sb.auth.getSession();
   return session ? session.user.id : null;
