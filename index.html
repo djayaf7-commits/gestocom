@@ -339,12 +339,12 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
       <div class="inv-grid" id="inv-totaux"></div>
       <div class="card">
         <div class="card-header"><div class="card-title">Par catégorie</div></div>
-        <div class="table-scroll"><table><thead><tr><th>Catégorie</th><th>Nb produits</th><th>Unités stock</th><th>Valeur achat</th><th>Valeur cession</th><th>Bén. prévisionnel</th></tr></thead>
+        <div class="table-scroll"><table><thead><tr><th>Catégorie</th><th>Nb produits</th><th>Unités stock</th><th>Précommandées</th><th>Disponibles</th><th>Valeur achat</th><th>Valeur cession</th><th>Bén. prévisionnel</th></tr></thead>
         <tbody id="inv-cat-tbody"></tbody></table></div>
       </div>
       <div class="card">
         <div class="card-header"><div class="card-title">Par produit — détail complet</div></div>
-        <div class="table-scroll"><table><thead><tr><th>Produit</th><th>Stock</th><th>Prix achat</th><th>Prix cession</th><th>Val. achat totale</th><th>Val. cession totale</th><th>Bén. prévisionnel</th><th>Statut</th></tr></thead>
+        <div class="table-scroll"><table><thead><tr><th>Produit</th><th>Stock</th><th>Précom.</th><th>Dispo réel</th><th>Prix achat</th><th>Prix cession</th><th>Val. achat</th><th>Bén. prévi.</th><th>Statut</th></tr></thead>
         <tbody id="inv-produit-tbody"></tbody></table></div>
       </div>
     </div>
@@ -745,6 +745,8 @@ function supprimerProduit(id){confirm2('Supprimer ce produit ?','Cette action es
 // ===== INVENTAIRE =====
 function renderInventaire(){
   const prods=DB.produits;
+  const precomParProduit={};
+  DB.commandes.filter(c=>c.statut==='pending').forEach(c=>{precomParProduit[c.produitId]=(precomParProduit[c.produitId]||0)+c.qte;});
   const totalUnites=prods.reduce((s,p)=>s+p.stock,0);
   const totalValAchat=prods.reduce((s,p)=>s+(p.achat*p.stock),0);
   const totalValCession=prods.reduce((s,p)=>s+(p.cession*p.stock),0);
@@ -759,17 +761,19 @@ function renderInventaire(){
     <div class="inv-card green"><div class="inv-label">Bénéfice prévisionnel</div><div class="inv-value" style="color:var(--green)">${totalBenPrev>=0?'+':''}${Math.round(totalBenPrev).toLocaleString('fr-FR')}</div><div class="inv-sub">FCFA si tout le stock écoulé</div></div>
     <div class="inv-card red"><div class="inv-label">Alertes stock</div><div class="inv-value" style="color:var(--red);font-size:16px">${nbRupture} rupture${nbRupture>1?'s':''} · ${nbFaible} faible${nbFaible>1?'s':''}</div><div class="inv-sub">produits à surveiller</div></div>`;
   const byCat={};
-  prods.forEach(p=>{if(!byCat[p.cat])byCat[p.cat]={n:0,u:0,vA:0,vC:0};byCat[p.cat].n++;byCat[p.cat].u+=p.stock;byCat[p.cat].vA+=p.achat*p.stock;byCat[p.cat].vC+=p.cession*p.stock;});
+  prods.forEach(p=>{if(!byCat[p.cat])byCat[p.cat]={n:0,u:0,precom:0,vA:0,vC:0};const pc=precomParProduit[p.id]||0;byCat[p.cat].n++;byCat[p.cat].u+=p.stock;byCat[p.cat].precom+=pc;byCat[p.cat].vA+=p.achat*p.stock;byCat[p.cat].vC+=p.cession*p.stock;});
   const catTb=document.getElementById('inv-cat-tbody');
   const cats=Object.entries(byCat).sort((a,b)=>b[1].vC-a[1].vC);
-  catTb.innerHTML=cats.length?cats.map(([cat,d])=>{const ben=d.vC-d.vA;return`<tr><td><span class="chip">${cat}</span></td><td style="text-align:center">${d.n}</td><td style="text-align:center">${d.u.toLocaleString('fr-FR')}</td><td style="color:var(--red)">${fcfa(d.vA)}</td><td style="color:var(--gold2)">${fcfa(d.vC)}</td><td class="${ben>=0?'profit-pos':'profit-neg'}">${ben>=0?'+':''}${fcfa(ben)}</td></tr>`; }).join(''):`<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Aucun produit</td></tr>`;
+  catTb.innerHTML=cats.length?cats.map(([cat,d])=>{const ben=d.vC-d.vA;const dispo=d.u-d.precom;return`<tr><td><span class="chip">${cat}</span></td><td style="text-align:center">${d.n}</td><td style="text-align:center">${d.u.toLocaleString('fr-FR')}</td><td style="text-align:center;color:var(--purple)">${d.precom||'—'}</td><td style="text-align:center;color:var(--green)">${dispo.toLocaleString('fr-FR')}</td><td style="color:var(--red)">${fcfa(d.vA)}</td><td style="color:var(--gold2)">${fcfa(d.vC)}</td><td class="${ben>=0?'profit-pos':'profit-neg'}">${ben>=0?'+':''}${fcfa(ben)}</td></tr>`; }).join(''):`<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Aucun produit</td></tr>`;
   const prodTb=document.getElementById('inv-produit-tbody');
   const sorted=[...prods].sort((a,b)=>(b.cession*b.stock)-(a.cession*a.stock));
   prodTb.innerHTML=sorted.length?sorted.map(p=>{
     const vA=p.achat*p.stock,vC=p.cession*p.stock,ben=vC-vA;
-    const s=p.stock<=0?'out':p.stock<=p.alerte?'low':'ok';
-    return`<tr><td><strong>${esc(p.nom)}</strong><br><span style="font-size:10px;color:var(--muted)">${p.cat}${p.ref?' · '+p.ref:''}</span></td><td style="text-align:center;font-weight:700">${p.stock}</td><td style="color:var(--red)">${fcfa(p.achat)}</td><td style="color:var(--gold2)">${fcfa(p.cession)}</td><td style="color:var(--red)">${fcfa(vA)}</td><td style="color:var(--gold2)">${fcfa(vC)}</td><td class="${ben>=0?'profit-pos':'profit-neg'}">${ben>=0?'+':''}${fcfa(ben)}</td><td><span class="badge ${s==='ok'?'badge-ok':s==='low'?'badge-low':'badge-out'}">${s==='ok'?'En stock':s==='low'?'Faible':'Rupture'}</span></td></tr>`;
-  }).join(''):`<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Aucun produit</td></tr>`;
+    const pc=precomParProduit[p.id]||0;
+    const dispo=p.stock-pc;
+    const s=dispo<=0?'out':dispo<=p.alerte?'low':'ok';
+    return`<tr><td><strong>${esc(p.nom)}</strong><br><span style="font-size:10px;color:var(--muted)">${p.cat}${p.ref?' · '+p.ref:''}</span></td><td style="text-align:center;font-weight:700">${p.stock}</td><td style="text-align:center;color:var(--purple)">${pc||'—'}</td><td style="text-align:center;color:var(--green);font-weight:700">${dispo}</td><td style="color:var(--red)">${fcfa(p.achat)}</td><td style="color:var(--gold2)">${fcfa(p.cession)}</td><td style="color:var(--red)">${fcfa(vA)}</td><td class="${ben>=0?'profit-pos':'profit-neg'}">${ben>=0?'+':''}${fcfa(ben)}</td><td><span class="badge ${s==='ok'?'badge-ok':s==='low'?'badge-low':'badge-out'}">${s==='ok'?'En stock':s==='low'?'Faible':'Rupture'}</span></td></tr>`;
+  }).join(''):`<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">Aucun produit</td></tr>`;
 }
 
 // ===== VENDEURS =====
