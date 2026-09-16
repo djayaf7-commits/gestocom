@@ -610,28 +610,41 @@ let editProduitId=null,editVendeurId=null,confirmCb=null,currentCmdId=null;
 async function loadDB(){
   const uid = await getUserId();
   if(!uid) return;
-  const [{data:produits},{data:vendeurs},{data:ventes},{data:commandes}] = await Promise.all([
-    sb.from('produits').select('*').eq('user_id',uid),
-    sb.from('vendeurs').select('*').eq('user_id',uid),
-    sb.from('ventes').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
-    sb.from('commandes').select('*').eq('user_id',uid).order('created_at',{ascending:false})
-  ]);
-  DB.produits=(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte}));
-  DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note}));
-  DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note}));
-  DB.commandes=(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}));
+  try{
+    const [{data:produits,error:e1},{data:vendeurs,error:e2},{data:ventes,error:e3},{data:commandes,error:e4}] = await Promise.all([
+      sb.from('produits').select('*').eq('user_id',uid),
+      sb.from('vendeurs').select('*').eq('user_id',uid),
+      sb.from('ventes').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+      sb.from('commandes').select('*').eq('user_id',uid).order('created_at',{ascending:false})
+    ]);
+    if(e1||e2||e3||e4) throw new Error('supabase fetch failed');
+    DB.produits=(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte}));
+    DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note}));
+    DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note}));
+    DB.commandes=(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}));
+    localStorage.setItem('gestocom_cache_'+uid, JSON.stringify(DB));
+  }catch(e){
+    // Hors-ligne ou erreur reseau : on garde la derniere copie locale plutot que de tout vider
+    const cached = localStorage.getItem('gestocom_cache_'+uid);
+    if(cached){ try{ DB = JSON.parse(cached); }catch(e2){} }
+  }
 }
 async function saveDB(){
   const uid = await getUserId();
   if(!uid) return;
-  await sb.from('produits').delete().eq('user_id', uid);
-  await sb.from('vendeurs').delete().eq('user_id', uid);
-  await sb.from('ventes').delete().eq('user_id', uid);
-  await sb.from('commandes').delete().eq('user_id', uid);
-  if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
-  if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note})));
-  if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note})));
-  if(DB.commandes.length) await sb.from('commandes').insert(DB.commandes.map(c=>({id:String(c.id),user_id:uid,client:c.client,tel:c.tel,produit_id:c.produitId?String(c.produitId):null,produit_nom:c.produitNom,qte:c.qte,prix_total:c.prixTotal,note:c.note,avances:c.avances||[],statut:c.statut,date_creation:c.dateCreation})));
+  localStorage.setItem('gestocom_cache_'+uid, JSON.stringify(DB)); // securise immediatement, meme hors-ligne
+  try{
+    await sb.from('produits').delete().eq('user_id', uid);
+    await sb.from('vendeurs').delete().eq('user_id', uid);
+    await sb.from('ventes').delete().eq('user_id', uid);
+    await sb.from('commandes').delete().eq('user_id', uid);
+    if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
+    if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note})));
+    if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note})));
+    if(DB.commandes.length) await sb.from('commandes').insert(DB.commandes.map(c=>({id:String(c.id),user_id:uid,client:c.client,tel:c.tel,produit_id:c.produitId?String(c.produitId):null,produit_nom:c.produitNom,qte:c.qte,prix_total:c.prixTotal,note:c.note,avances:c.avances||[],statut:c.statut,date_creation:c.dateCreation})));
+  }catch(e){
+    // Hors-ligne : les donnees restent en cache local, elles seront synchronisees au prochain saveDB() reussi
+  }
 }
 
 const fcfa=n=>Math.round(n).toLocaleString('fr-FR')+' FCFA';
@@ -886,7 +899,11 @@ function renderHistorique(){
   document.getElementById('histo-footer').innerHTML=`${data.length} vente(s) · CA : <strong style="color:var(--gold2)">${fcfa(totalCA)}</strong> · Bénéfice : <strong class="${totalBen>=0?'profit-pos':'profit-neg'}">${fcfa(totalBen)}</strong>`;
 }
 
-function supprimerVente(id){confirm2('Supprimer cette vente ?','Le stock ne sera pas restauré automatiquement.',()=>{DB.ventes=DB.ventes.filter(v=>v.id!==id);saveDB();renderHistorique();renderDashboard();});}
+function supprimerVente(id){confirm2('Supprimer cette vente ?','La quantité vendue sera recréditée au stock actuel.',()=>{
+  const v=DB.ventes.find(x=>x.id===id);
+  if(v){const p=DB.produits.find(x=>x.id===v.produitId);if(p)p.stock=(p.stock||0)+(v.qte||0);}
+  DB.ventes=DB.ventes.filter(x=>x.id!==id);saveDB();renderHistorique();renderDashboard();
+});}
 
 // ===== DASHBOARD =====
 function ouvrirModalCommande(){
@@ -1094,21 +1111,33 @@ let ardCurrentMode='new';
 async function ardLoad(){
   const uid = await getUserId();
   if(!uid) return;
-  const [{data:clients},{data:transactions}] = await Promise.all([
-    sb.from('clients_ardoise').select('*').eq('user_id',uid),
-    sb.from('transactions_ardoise').select('*').eq('user_id',uid)
-  ]);
-  ardData.clients=(clients||[]).map(c=>({id:c.id,nom:c.nom,tel:c.tel,transactions:(transactions||[]).filter(t=>t.client_id===c.id).map(t=>({id:t.id,type:t.type,montant:t.montant,produit:t.produit||'',date:t.date,dateEcheance:t.date_echeance||''}))}));
+  try{
+    const [{data:clients,error:e1},{data:transactions,error:e2}] = await Promise.all([
+      sb.from('clients_ardoise').select('*').eq('user_id',uid),
+      sb.from('transactions_ardoise').select('*').eq('user_id',uid)
+    ]);
+    if(e1||e2) throw new Error('supabase fetch failed');
+    ardData.clients=(clients||[]).map(c=>({id:c.id,nom:c.nom,tel:c.tel,transactions:(transactions||[]).filter(t=>t.client_id===c.id).map(t=>({id:t.id,type:t.type,montant:t.montant,produit:t.produit||'',date:t.date,dateEcheance:t.date_echeance||''}))}));
+    localStorage.setItem('gestocom_ardoise_cache_'+uid, JSON.stringify(ardData));
+  }catch(e){
+    const cached = localStorage.getItem('gestocom_ardoise_cache_'+uid);
+    if(cached){ try{ ardData = JSON.parse(cached); }catch(e2){} }
+  }
 }
 async function ardSaveData(){
   const uid = await getUserId();
   if(!uid) return;
-  await sb.from('transactions_ardoise').delete().eq('user_id', uid);
-  await sb.from('clients_ardoise').delete().eq('user_id', uid);
-  if(ardData.clients.length){
-    await sb.from('clients_ardoise').insert(ardData.clients.map(c=>({id:String(c.id),user_id:uid,nom:c.nom,tel:c.tel})));
-    const allTx=ardData.clients.flatMap(c=>(c.transactions||[]).map(t=>({id:String(t.id),user_id:uid,client_id:String(c.id),type:t.type,montant:t.montant,produit:t.produit||null,date:t.date,date_echeance:t.dateEcheance||null})));
-    if(allTx.length) await sb.from('transactions_ardoise').insert(allTx);
+  localStorage.setItem('gestocom_ardoise_cache_'+uid, JSON.stringify(ardData));
+  try{
+    await sb.from('transactions_ardoise').delete().eq('user_id', uid);
+    await sb.from('clients_ardoise').delete().eq('user_id', uid);
+    if(ardData.clients.length){
+      await sb.from('clients_ardoise').insert(ardData.clients.map(c=>({id:String(c.id),user_id:uid,nom:c.nom,tel:c.tel})));
+      const allTx=ardData.clients.flatMap(c=>(c.transactions||[]).map(t=>({id:String(t.id),user_id:uid,client_id:String(c.id),type:t.type,montant:t.montant,produit:t.produit||null,date:t.date,date_echeance:t.dateEcheance||null})));
+      if(allTx.length) await sb.from('transactions_ardoise').insert(allTx);
+    }
+  }catch(e){
+    // Hors-ligne : reste en cache local, sera synchronise au prochain succes
   }
 }
 function ardUid(){return Math.random().toString(36).slice(2,10);}
