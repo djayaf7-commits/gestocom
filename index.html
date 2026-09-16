@@ -301,8 +301,23 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 
     <!-- DASHBOARD -->
     <div class="section active" id="sec-dashboard">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 20px">
+          <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Période</span>
+          <select class="periode-select" onchange="changerPeriode(this.value)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;font-family:Epilogue">
+            <option value="mois">Ce mois</option>
+            <option value="tout">Tout</option>
+            <option value="perso">Personnalisé</option>
+          </select>
+          <span class="periode-perso" style="display:none;align-items:center;gap:8px">
+            <input type="date" id="periode-debut" onchange="appliquerPeriodePerso()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px">
+            <span style="color:var(--muted);font-size:11px">à</span>
+            <input type="date" id="periode-fin" onchange="appliquerPeriodePerso()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px">
+          </span>
+        </div>
+      </div>
       <div class="stats-grid">
-        <div class="stat-card g"><div class="stat-glow"></div><div class="stat-label">Chiffre d'affaires</div><div class="stat-value" id="d-ca">0</div><div class="stat-sub">FCFA — toutes ventes</div></div>
+        <div class="stat-card g"><div class="stat-glow"></div><div class="stat-label">Chiffre d'affaires</div><div class="stat-value" id="d-ca">0</div><div class="stat-sub">FCFA — période sélectionnée</div></div>
         <div class="stat-card gr"><div class="stat-glow"></div><div class="stat-label">Bénéfice net réalisé</div><div class="stat-value" id="d-ben">0</div><div class="stat-sub">FCFA — après achat</div></div>
         <div class="stat-card rd"><div class="stat-glow"></div><div class="stat-label">Coût total achats</div><div class="stat-value" id="d-cout">0</div><div class="stat-sub">FCFA — marchandises</div></div>
         <div class="stat-card bl"><div class="stat-glow"></div><div class="stat-label">Références en stock</div><div class="stat-value" id="d-refs">0</div><div class="stat-sub">produits actifs</div></div>
@@ -434,6 +449,21 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 
     <!-- BILAN -->
     <div class="section" id="sec-bilan">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 20px">
+          <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Période</span>
+          <select class="periode-select" onchange="changerPeriode(this.value)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;font-family:Epilogue">
+            <option value="mois">Ce mois</option>
+            <option value="tout">Tout</option>
+            <option value="perso">Personnalisé</option>
+          </select>
+          <span class="periode-perso" style="display:none;align-items:center;gap:8px">
+            <input type="date" id="periode-debut" onchange="appliquerPeriodePerso()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px">
+            <span style="color:var(--muted);font-size:11px">à</span>
+            <input type="date" id="periode-fin" onchange="appliquerPeriodePerso()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px">
+          </span>
+        </div>
+      </div>
       <div class="stats-grid">
         <div class="stat-card g"><div class="stat-glow"></div><div class="stat-label">CA total</div><div class="stat-value" id="b-ca">0</div><div class="stat-sub">FCFA</div></div>
         <div class="stat-card gr"><div class="stat-glow"></div><div class="stat-label">Bénéfice total</div><div class="stat-value" id="b-ben">0</div><div class="stat-sub">FCFA</div></div>
@@ -1036,8 +1066,30 @@ function solderCommande(id){
 }
 function supprimerCommande(id){confirm2('Supprimer cette précommande ?','Action irréversible.',async()=>{DB.commandes=DB.commandes.filter(x=>x.id!==id);await saveDB();renderCommandes();});}
 
+let periodeMode='mois', periodeDebut='', periodeFin='';
+function getVentesPeriode(){
+  if(periodeMode==='tout') return DB.ventes;
+  if(periodeMode==='perso'){
+    if(!periodeDebut||!periodeFin) return DB.ventes;
+    return DB.ventes.filter(v=>v.date>=periodeDebut&&v.date<=periodeFin);
+  }
+  const ym=new Date().toISOString().slice(0,7);
+  return DB.ventes.filter(v=>v.date&&v.date.slice(0,7)===ym);
+}
+function changerPeriode(mode){
+  periodeMode=mode;
+  document.querySelectorAll('.periode-select').forEach(s=>s.value=mode);
+  document.querySelectorAll('.periode-perso').forEach(el=>el.style.display=mode==='perso'?'flex':'none');
+  renderDashboard();renderBilan();
+}
+function appliquerPeriodePerso(){
+  periodeDebut=document.getElementById('periode-debut').value;
+  periodeFin=document.getElementById('periode-fin').value;
+  renderDashboard();renderBilan();
+}
 function renderDashboard(){
-  const ca=DB.ventes.reduce((s,v)=>s+v.ca,0),ben=DB.ventes.reduce((s,v)=>s+v.benefice,0),cout=DB.ventes.reduce((s,v)=>s+v.coutAchat,0);
+  const ventesP=getVentesPeriode();
+  const ca=ventesP.reduce((s,v)=>s+v.ca,0),ben=ventesP.reduce((s,v)=>s+v.benefice,0),cout=ventesP.reduce((s,v)=>s+v.coutAchat,0);
   document.getElementById('d-ca').textContent=Math.round(ca).toLocaleString('fr-FR');
   document.getElementById('d-ben').textContent=Math.round(ben).toLocaleString('fr-FR');
   document.getElementById('d-cout').textContent=Math.round(cout).toLocaleString('fr-FR');
@@ -1047,25 +1099,26 @@ function renderDashboard(){
   if(!ruptures.length&&!faibles.length)aDiv.innerHTML=`<div class="empty"><div class="empty-icon">✓</div><div class="empty-text">Tous les stocks sont OK</div></div>`;
   else aDiv.innerHTML='<div style="padding:16px">'+ruptures.map(p=>`<div class="alert-bar alert-red">● <strong>${esc(p.nom)}</strong> — Rupture</div>`).join('')+faibles.map(p=>`<div class="alert-bar alert-yellow">● <strong>${esc(p.nom)}</strong> — ${p.stock} restant(s)</div>`).join('')+'</div>';
   const tv=document.getElementById('d-topvendeurs');
-  if(!DB.ventes.length)tv.innerHTML=`<div class="empty"><div class="empty-icon">◉</div><div class="empty-text">Aucune vente</div></div>`;
-  else{const byV={};DB.ventes.forEach(v=>{if(!byV[v.vendeurId])byV[v.vendeurId]={nom:v.vendeurNom,ca:0,n:0};byV[v.vendeurId].ca+=v.ca;byV[v.vendeurId].n++;});
+  if(!ventesP.length)tv.innerHTML=`<div class="empty"><div class="empty-icon">◉</div><div class="empty-text">Aucune vente sur cette période</div></div>`;
+  else{const byV={};ventesP.forEach(v=>{if(!byV[v.vendeurId])byV[v.vendeurId]={nom:v.vendeurNom,ca:0,n:0};byV[v.vendeurId].ca+=v.ca;byV[v.vendeurId].n++;});
     const ranked=Object.values(byV).sort((a,b)=>b.ca-a.ca).slice(0,5),maxCA=ranked[0].ca;
     tv.innerHTML='<div style="padding:16px">'+ranked.map((v,i)=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${i===0?'①':i===1?'②':'③'} ${esc(v.nom)} <span style="color:var(--muted);font-size:10px">(${v.n} vente${v.n>1?'s':''})</span></span><span style="color:var(--gold2)">${fcfa(v.ca)}</span></div><div class="progress-wrap"><div class="progress-fill" style="width:${(v.ca/maxCA*100).toFixed(0)}%;background:var(--gold)"></div></div></div>`).join('')+'</div>';}
   const lv=document.getElementById('d-last-ventes');
-  if(!DB.ventes.length)lv.innerHTML=`<div class="empty"><div class="empty-icon">◻</div><div class="empty-text">Aucune vente</div></div>`;
-  else lv.innerHTML=`<div class="table-scroll"><table><tbody>`+DB.ventes.slice(0,6).map(v=>`<tr><td style="font-size:10px;color:var(--muted2)">${fmtDate(v.date)}</td><td><strong style="font-size:12px">${v.produitNom}</strong></td><td style="font-size:12px;color:var(--muted2)">${v.vendeurNom}</td><td style="font-size:11px;text-align:center">${v.qte}x</td><td style="color:var(--gold2)">${fcfa(v.ca)}</td><td class="${v.benefice>=0?'profit-pos':'profit-neg'}" style="font-size:12px">${v.benefice>=0?'+':''}${fcfa(v.benefice)}</td></tr>`).join('')+`</tbody></table></div>`;
+  if(!ventesP.length)lv.innerHTML=`<div class="empty"><div class="empty-icon">◻</div><div class="empty-text">Aucune vente sur cette période</div></div>`;
+  else lv.innerHTML=`<div class="table-scroll"><table><tbody>`+ventesP.slice(0,6).map(v=>`<tr><td style="font-size:10px;color:var(--muted2)">${fmtDate(v.date)}</td><td><strong style="font-size:12px">${v.produitNom}</strong></td><td style="font-size:12px;color:var(--muted2)">${v.vendeurNom}</td><td style="font-size:11px;text-align:center">${v.qte}x</td><td style="color:var(--gold2)">${fcfa(v.ca)}</td><td class="${v.benefice>=0?'profit-pos':'profit-neg'}" style="font-size:12px">${v.benefice>=0?'+':''}${fcfa(v.benefice)}</td></tr>`).join('')+`</tbody></table></div>`;
 }
 
 // ===== BILAN =====
 function renderBilan(){
-  const ca=DB.ventes.reduce((s,v)=>s+v.ca,0),ben=DB.ventes.reduce((s,v)=>s+v.benefice,0),cout=DB.ventes.reduce((s,v)=>s+v.coutAchat,0);
+  const ventesP=getVentesPeriode();
+  const ca=ventesP.reduce((s,v)=>s+v.ca,0),ben=ventesP.reduce((s,v)=>s+v.benefice,0),cout=ventesP.reduce((s,v)=>s+v.coutAchat,0);
   document.getElementById('b-ca').textContent=Math.round(ca).toLocaleString('fr-FR');
   document.getElementById('b-ben').textContent=Math.round(ben).toLocaleString('fr-FR');
   document.getElementById('b-cout').textContent=Math.round(cout).toLocaleString('fr-FR');
   document.getElementById('b-marge').textContent=ca?((ben/ca)*100).toFixed(1)+'%':'—';
-  const byV={};DB.ventes.forEach(v=>{if(!byV[v.vendeurId])byV[v.vendeurId]={nom:v.vendeurNom,ca:0,ben:0,n:0};byV[v.vendeurId].ca+=v.ca;byV[v.vendeurId].ben+=v.benefice;byV[v.vendeurId].n++;});
+  const byV={};ventesP.forEach(v=>{if(!byV[v.vendeurId])byV[v.vendeurId]={nom:v.vendeurNom,ca:0,ben:0,n:0};byV[v.vendeurId].ca+=v.ca;byV[v.vendeurId].ben+=v.benefice;byV[v.vendeurId].n++;});
   document.getElementById('tbody-bilan-vendeur').innerHTML=Object.values(byV).sort((a,b)=>b.ca-a.ca).map(v=>`<tr><td><strong>${esc(v.nom)}</strong></td><td style="text-align:center">${v.n}</td><td style="color:var(--gold2)">${fcfa(v.ca)}</td><td class="${v.ben>=0?'profit-pos':'profit-neg'}">${v.ben>=0?'+':''}${fcfa(v.ben)}</td><td>${pct(v.ben,v.ca)}</td></tr>`).join('')||`<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">—</td></tr>`;
-  const byP={};DB.ventes.forEach(v=>{if(!byP[v.produitId])byP[v.produitId]={nom:v.produitNom,qte:0,ca:0,ben:0};byP[v.produitId].qte+=v.qte;byP[v.produitId].ca+=v.ca;byP[v.produitId].ben+=v.benefice;});
+  const byP={};ventesP.forEach(v=>{if(!byP[v.produitId])byP[v.produitId]={nom:v.produitNom,qte:0,ca:0,ben:0};byP[v.produitId].qte+=v.qte;byP[v.produitId].ca+=v.ca;byP[v.produitId].ben+=v.benefice;});
   document.getElementById('tbody-bilan-produit').innerHTML=Object.values(byP).sort((a,b)=>b.ca-a.ca).map(p=>`<tr><td><strong>${esc(p.nom)}</strong></td><td style="text-align:center">${p.qte}</td><td style="color:var(--gold2)">${fcfa(p.ca)}</td><td class="${p.ben>=0?'profit-pos':'profit-neg'}">${p.ben>=0?'+':''}${fcfa(p.ben)}</td></tr>`).join('')||`<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">—</td></tr>`;
 }
 
