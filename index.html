@@ -381,33 +381,26 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div class="section" id="sec-vente">
       <div class="two-col vente-grid" style="align-items:start">
         <div class="card">
-          <div class="card-header"><div class="card-title">Nouvelle vente</div></div>
+          <div class="card-header"><div class="card-title">🛒 Nouvelle vente — multi-produits</div></div>
           <div class="form-grid fg-2">
-            <div class="form-group full"><label>Vendeur *</label><select id="vt-vendeur" onchange="updateRecap()"><option value="">— Choisir —</option></select></div>
-            <div class="form-group full"><label>Produit *</label><select id="vt-produit" onchange="onProduitChange()"><option value="">— Choisir —</option></select></div>
-            <div class="form-group"><label>Quantité *</label><input type="number" id="vt-qte" value="1" min="1" oninput="updateRecap()"></div>
-            <div class="form-group"><label>Prix de vente réel (FCFA) *</label><input type="number" id="vt-prix" placeholder="Prix réel" oninput="updateRecap()"><span style="font-size:10px;color:var(--muted)" id="hint-prix">Cession conseillée : —</span></div>
+            <div class="form-group full"><label>Vendeur *</label><select id="vt-vendeur"><option value="">— Choisir un vendeur —</option></select></div>
             <div class="form-group"><label>Date</label><input type="date" id="vt-date"></div>
-            <div class="form-group"><label>Note</label><input type="text" id="vt-note" placeholder="Optionnel..."></div>
+            <div class="form-group"><label>Note globale</label><input type="text" id="vt-note" placeholder="Optionnel..."></div>
           </div>
-          <div class="form-actions"><button class="btn btn-gold" onclick="enregistrerVente()" style="flex:1;justify-content:center">✓ Enregistrer la vente</button></div>
+          <div style="padding:0 20px 16px">
+            <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Panier de produits</label>
+            <div id="vt-panier-list" style="margin-top:10px"></div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <select id="vt-produit-select" style="flex:1"><option value="">— Choisir un produit —</option></select>
+              <button class="btn btn-ghost" onclick="ajouterAuPanier()">+ Ajouter</button>
+            </div>
+          </div>
+          <div class="form-actions"><button class="btn btn-gold" onclick="enregistrerVente()" style="flex:1;justify-content:center">✓ Enregistrer &amp; Générer reçu</button></div>
         </div>
         <div>
           <div class="card">
-            <div class="card-header"><div class="card-title">Récapitulatif temps réel</div></div>
-            <div style="padding:20px">
-              <div class="recap-box">
-                <div class="recap-row"><span class="recap-label">Produit</span><span id="r-produit">—</span></div>
-                <div class="recap-row"><span class="recap-label">Vendeur</span><span id="r-vendeur">—</span></div>
-                <div class="recap-row"><span class="recap-label">Quantité</span><span id="r-qte">—</span></div>
-                <div class="recap-row"><span class="recap-label">Prix vente réel</span><span id="r-prix">—</span></div>
-                <div class="recap-row"><span class="recap-label">CA brut</span><span id="r-ca" style="color:var(--gold2)">—</span></div>
-                <div class="recap-row"><span class="recap-label">Coût achat total</span><span id="r-cout" style="color:var(--red)">—</span></div>
-                <div class="recap-row"><span class="recap-label">Prix cession (à reverser)</span><span id="r-cess" style="color:var(--muted2)">—</span></div>
-                <div class="recap-row recap-total"><span class="recap-label">Bénéfice net</span><span id="r-ben">—</span></div>
-              </div>
-              <div style="margin-top:12px;padding:12px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);font-size:12px;color:var(--muted2)" id="r-stock-info">Sélectionnez un produit</div>
-            </div>
+            <div class="card-header"><div class="card-title">Récapitulatif</div></div>
+            <div style="padding:20px" id="vt-recap-lines"></div>
           </div>
         </div>
       </div>
@@ -862,51 +855,91 @@ function supprimerVendeur(id){
 }
 
 // ===== VENTE =====
+let venteCart=[];
+
 function initVenteForm(){
   const sv=document.getElementById('vt-vendeur');
-  sv.innerHTML='<option value="">— Choisir —</option>'+DB.vendeurs.map(v=>`<option value="${v.id}">${esc(v.nom)}</option>`).join('');
-  const sp=document.getElementById('vt-produit');
-  sp.innerHTML='<option value="">— Choisir —</option>'+DB.produits.filter(p=>p.stock>0).map(p=>`<option value="${p.id}">${esc(p.nom)} (stock: ${p.stock})</option>`).join('');
+  sv.innerHTML='<option value="">— Choisir un vendeur —</option>'+DB.vendeurs.map(v=>`<option value="${v.id}">${esc(v.nom)}</option>`).join('');
   document.getElementById('vt-date').value=new Date().toISOString().split('T')[0];
-  updateRecap();
+  venteCart=[];
+  refreshProduitSelect();
+  renderPanier();
 }
 
-function onProduitChange(){
-  const p=DB.produits.find(x=>x.id===document.getElementById('vt-produit').value);
-  if(p){document.getElementById('vt-prix').value=p.cession;document.getElementById('hint-prix').textContent=`Cession conseillée : ${fcfa(p.cession)} | Achat : ${fcfa(p.achat)}`;document.getElementById('r-stock-info').textContent=`Stock disponible : ${p.stock} unité(s)`;}
-  else{document.getElementById('hint-prix').textContent='Cession conseillée : —';document.getElementById('r-stock-info').textContent='Sélectionnez un produit';}
-  updateRecap();
+function refreshProduitSelect(){
+  const sp=document.getElementById('vt-produit-select');
+  const enPanier=venteCart.map(c=>c.produitId);
+  sp.innerHTML='<option value="">— Choisir un produit —</option>'+DB.produits.filter(p=>p.stock>0&&!enPanier.includes(p.id)).map(p=>`<option value="${p.id}">${esc(p.nom)} — stock:${p.stock} — cession:${fcfa(p.cession)}</option>`).join('');
 }
 
-function updateRecap(){
-  const p=DB.produits.find(x=>x.id===document.getElementById('vt-produit').value);
-  const v=DB.vendeurs.find(x=>x.id===document.getElementById('vt-vendeur').value);
-  const prix=parseFloat(document.getElementById('vt-prix').value)||0;
-  const qte=parseInt(document.getElementById('vt-qte').value)||1;
-  document.getElementById('r-produit').textContent=p?p.nom:'—';
-  document.getElementById('r-vendeur').textContent=v?v.nom:'—';
-  document.getElementById('r-qte').textContent=qte;
-  if(!p||!prix){['r-prix','r-ca','r-cout','r-cess','r-ben'].forEach(id=>document.getElementById(id).textContent='—');return;}
-  const ca=prix*qte,cout=p.achat*qte,cess=p.cession*qte,ben=ca-cout;
-  document.getElementById('r-prix').textContent=fcfa(prix);
-  document.getElementById('r-ca').textContent=fcfa(ca);
-  document.getElementById('r-cout').textContent=fcfa(cout);
-  document.getElementById('r-cess').textContent=fcfa(cess)+' (à reverser)';
-  const benEl=document.getElementById('r-ben');benEl.textContent=(ben>=0?'+':'')+fcfa(ben);benEl.style.color=ben>=0?'var(--green)':'var(--red)';
+function ajouterAuPanier(){
+  const pid=document.getElementById('vt-produit-select').value;
+  const p=DB.produits.find(x=>x.id===pid);
+  if(!p){alert('Choisissez un produit');return;}
+  venteCart.push({produitId:p.id,produitNom:p.nom,produitRef:p.ref||'',achat:p.achat,cession:p.cession,stockMax:p.stock,qte:1,prixVente:p.cession});
+  refreshProduitSelect();renderPanier();
+}
+function retirerDuPanier(i){venteCart.splice(i,1);refreshProduitSelect();renderPanier();}
+function changerQtePanier(i,delta){
+  const item=venteCart[i];const nq=item.qte+delta;
+  if(nq<1||nq>item.stockMax)return;
+  item.qte=nq;renderPanier();
+}
+function changerPrixPanier(i,val){venteCart[i].prixVente=parseFloat(val)||0;renderPanier();}
+
+function renderPanier(){
+  const el=document.getElementById('vt-panier-list');
+  if(!venteCart.length){
+    el.innerHTML='<div style="padding:14px;text-align:center;color:var(--muted);font-size:12px;background:var(--bg3);border-radius:10px">🛒 Panier vide — ajoutez des produits ci-dessous</div>';
+  } else {
+    el.innerHTML=venteCart.map((c,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:10px;margin-bottom:8px;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px"><strong style="font-size:13px">${esc(c.produitNom)}</strong><br><span style="font-size:10px;color:var(--muted)">Achat: ${fcfa(c.achat)} · Cession: ${fcfa(c.cession)}</span></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="changerQtePanier(${i},-1)">−</button>
+          <span style="min-width:20px;text-align:center;font-weight:700">${c.qte}</span>
+          <button class="btn btn-ghost btn-sm" onclick="changerQtePanier(${i},1)">+</button>
+        </div>
+        <input type="number" value="${c.prixVente}" oninput="changerPrixPanier(${i},this.value)" style="width:100px" placeholder="Prix vente">
+        <button class="btn btn-ghost btn-sm" onclick="retirerDuPanier(${i})" style="color:var(--red)">✕</button>
+      </div>`).join('');
+  }
+  updateRecapPanier();
 }
 
-function enregistrerVente(){
-  const pid=document.getElementById('vt-produit').value,vid=document.getElementById('vt-vendeur').value;
-  const p=DB.produits.find(x=>x.id===pid),v=DB.vendeurs.find(x=>x.id===vid);
-  if(!pid){alert('Sélectionnez un produit');return;}if(!vid){alert('Sélectionnez un vendeur');return;}if(!p){alert('Produit introuvable');return;}
-  const prix=parseFloat(document.getElementById('vt-prix').value)||0,qte=parseInt(document.getElementById('vt-qte').value)||1;
-  if(prix<=0){alert('Entrez un prix de vente');return;}if(qte>p.stock){alert(`Stock insuffisant ! Il reste ${p.stock} unité(s)`);return;}
-  const vente={id:uid(),produitId:p.id,produitNom:p.nom,produitRef:p.ref||'',vendeurId:v.id,vendeurNom:v.nom,qte,prixVente:prix,prixAchat:p.achat,prixCession:p.cession,ca:prix*qte,coutAchat:p.achat*qte,benefice:(prix-p.achat)*qte,date:document.getElementById('vt-date').value,note:document.getElementById('vt-note').value};
-  DB.ventes.unshift(vente);p.stock-=qte;saveDB();
-  document.getElementById('vt-produit').value='';document.getElementById('vt-prix').value='';document.getElementById('vt-qte').value='1';document.getElementById('vt-note').value='';
-  document.getElementById('hint-prix').textContent='Cession conseillée : —';document.getElementById('r-stock-info').textContent='Sélectionnez un produit';
-  document.getElementById('vt-produit').innerHTML='<option value="">— Choisir —</option>'+DB.produits.filter(pr=>pr.stock>0).map(pr=>`<option value="${pr.id}">${pr.nom} (stock: ${pr.stock})</option>`).join('');
-  updateRecap();showToast(`✓ Vente enregistrée ! Bénéfice : ${(vente.benefice>=0?'+':'')}${fcfa(vente.benefice)}`);
+function updateRecapPanier(){
+  const el=document.getElementById('vt-recap-lines');
+  if(!venteCart.length){el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:12px;padding:10px">Ajoutez des produits au panier</div>';return;}
+  const ca=venteCart.reduce((s,c)=>s+c.prixVente*c.qte,0);
+  const cout=venteCart.reduce((s,c)=>s+c.achat*c.qte,0);
+  const ben=ca-cout;
+  const nbUnites=venteCart.reduce((s,c)=>s+c.qte,0);
+  el.innerHTML='<div class="recap-box">'+
+    venteCart.map(c=>`<div class="recap-row"><span class="recap-label">${esc(c.produitNom)} ×${c.qte}</span><span>${fcfa(c.prixVente*c.qte)}</span></div>`).join('')+
+    `<div class="recap-row"><span class="recap-label">CA brut</span><span style="color:var(--gold2)">${fcfa(ca)}</span></div>`+
+    `<div class="recap-row"><span class="recap-label">Coût achat total</span><span style="color:var(--red)">${fcfa(cout)}</span></div>`+
+    `<div class="recap-row recap-total"><span class="recap-label">Bénéfice net</span><span style="color:${ben>=0?'var(--green)':'var(--red)'}">${ben>=0?'+':''}${fcfa(ben)}</span></div>`+
+    '</div>'+
+    `<div style="margin-top:12px;padding:12px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);font-size:12px;color:var(--muted2)">${venteCart.length} produit(s) · ${nbUnites} unité(s) · CA : <strong style="color:var(--gold2)">${fcfa(ca)}</strong></div>`;
+}
+
+async function enregistrerVente(){
+  const vid=document.getElementById('vt-vendeur').value;
+  const v=DB.vendeurs.find(x=>x.id===vid);
+  if(!vid||!v){alert('Sélectionnez un vendeur');return;}
+  if(!venteCart.length){alert('Le panier est vide');return;}
+  const date=document.getElementById('vt-date').value,note=document.getElementById('vt-note').value;
+  let totalBen=0;
+  venteCart.forEach(c=>{
+    const p=DB.produits.find(x=>x.id===c.produitId);
+    const vente={id:uid(),produitId:c.produitId,produitNom:c.produitNom,produitRef:c.produitRef,vendeurId:v.id,vendeurNom:v.nom,qte:c.qte,prixVente:c.prixVente,prixAchat:c.achat,prixCession:c.cession,ca:c.prixVente*c.qte,coutAchat:c.achat*c.qte,benefice:(c.prixVente-c.achat)*c.qte,date,note};
+    DB.ventes.unshift(vente);totalBen+=vente.benefice;
+    if(p)p.stock-=c.qte;
+  });
+  await saveDB();
+  venteCart=[];document.getElementById('vt-note').value='';
+  refreshProduitSelect();renderPanier();
+  showToast(`✓ Vente enregistrée ! Bénéfice : ${(totalBen>=0?'+':'')}${fcfa(totalBen)}`);
 }
 
 // ===== HISTORIQUE =====
