@@ -255,6 +255,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 <script src="vendor/supabase.js"></script>
 <div class="sidebar-scrim" id="sidebarScrim" onclick="toggleSidebar(false)"></div>
 <div id="authGate" style="position:fixed;inset:0;background:#0E0F13;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Epilogue',sans-serif;">
+  <button onclick="continuerSansCompte()" style="position:absolute;top:20px;right:20px;background:none;border:none;color:#9099AA;font-size:22px;cursor:pointer;width:36px;height:36px;border-radius:8px;" title="Continuer sans compte">✕</button>
   <div style="text-align:center;padding:32px;">
     <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(90deg,#F5A623,#FFD07A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">GestoCom</div>
     <div style="color:#9099AA;font-size:13px;margin-bottom:28px;">Gestion Commerce</div>
@@ -262,6 +263,8 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
       <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.85.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
       Se connecter avec Google
     </button>
+    <div style="margin-top:14px;"><a onclick="continuerSansCompte()" style="color:#9099AA;font-size:12px;cursor:pointer;text-decoration:underline;">Continuer sans compte</a></div>
+    <div style="color:#6A7280;font-size:11px;margin-top:10px;max-width:280px;">Vos données resteront uniquement sur cet appareil, sans sauvegarde en ligne.</div>
     <div id="authError" style="color:#FF5C5C;font-size:12px;margin-top:16px;"></div>
   </div>
 </div>
@@ -284,7 +287,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div class="nav-section">Finance</div>
     <div class="nav-item" onclick="nav(this,'bilan')"><span class="nav-icon">◈</span><span>Bilan financier</span></div>
   </nav>
-  <div class="sidebar-footer"><div class="currency-badge"><span>FCFA</span></div></div>
+  <div class="sidebar-footer"><div id="compte-info" style="margin-bottom:10px"></div><div class="currency-badge"><span>FCFA</span></div></div>
 </aside>
 
 <main class="main">
@@ -597,9 +600,15 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+let isGuest=false;
 async function getUserId(){
   const {data:{session}} = await sb.auth.getSession();
   return session ? session.user.id : null;
+}
+
+function continuerSansCompte(){
+  isGuest=true;
+  demarrerApp();
 }
 
 async function demarrerApp(){
@@ -609,6 +618,20 @@ async function demarrerApp(){
   document.getElementById('dateNow').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   renderDashboard();
   maybeShowOnboardHint();
+  updateCompteUI();
+}
+
+async function updateCompteUI(){
+  const el=document.getElementById('compte-info');
+  if(!el)return;
+  if(isGuest){
+    el.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Mode sans compte — données locales uniquement</div><button class="btn btn-sm btn-gold" onclick="document.getElementById(\'authGate\').style.display=\'flex\'">Se connecter avec Google</button>';
+  } else {
+    const {data:{session}} = await sb.auth.getSession();
+    if(session){
+      el.innerHTML=`<div style="font-size:12px;color:var(--text);margin-bottom:8px">${session.user.email}</div><button class="btn btn-sm btn-ghost" onclick="sb.auth.signOut().then(()=>location.reload())">Se déconnecter</button>`;
+    }
+  }
 }
 
 function maybeShowOnboardHint(){
@@ -639,6 +662,11 @@ let DB={produits:[],vendeurs:[],ventes:[],commandes:[]};
 let editProduitId=null,editVendeurId=null,confirmCb=null,currentCmdId=null;
 
 async function loadDB(){
+  if(isGuest){
+    const cached = localStorage.getItem('gestocom_cache_guest');
+    if(cached){ try{ DB = JSON.parse(cached); }catch(e){} }
+    return;
+  }
   const uid = await getUserId();
   if(!uid) return;
   try{
@@ -661,6 +689,10 @@ async function loadDB(){
   }
 }
 async function saveDB(){
+  if(isGuest){
+    localStorage.setItem('gestocom_cache_guest', JSON.stringify(DB));
+    return;
+  }
   const uid = await getUserId();
   if(!uid) return;
   localStorage.setItem('gestocom_cache_'+uid, JSON.stringify(DB)); // securise immediatement, meme hors-ligne
@@ -1225,6 +1257,11 @@ let ardQuery='';
 let ardCurrentMode='new';
 
 async function ardLoad(){
+  if(isGuest){
+    const cached = localStorage.getItem('gestocom_ardoise_cache_guest');
+    if(cached){ try{ ardData = JSON.parse(cached); }catch(e){} }
+    return;
+  }
   const uid = await getUserId();
   if(!uid) return;
   try{
@@ -1241,6 +1278,10 @@ async function ardLoad(){
   }
 }
 async function ardSaveData(){
+  if(isGuest){
+    localStorage.setItem('gestocom_ardoise_cache_guest', JSON.stringify(ardData));
+    return;
+  }
   const uid = await getUserId();
   if(!uid) return;
   localStorage.setItem('gestocom_ardoise_cache_'+uid, JSON.stringify(ardData));
