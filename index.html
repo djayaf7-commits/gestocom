@@ -300,6 +300,12 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div class="page-title" id="pageTitle">Tableau de bord</div>
     <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:var(--muted2);text-transform:capitalize" id="dateNow"></span></div>
   </div>
+  <div id="guest-banner" style="display:none;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 20px;background:rgba(245,166,35,0.12);border-bottom:1px solid rgba(245,166,35,0.3);">
+    <span style="font-size:18px">⚠</span>
+    <span style="flex:1;min-width:200px;font-size:12px;color:var(--gold)">Vos données ne sont sauvegardées que sur cet appareil. Si vous désinstallez l'app ou changez de téléphone, elles seront perdues.</span>
+    <button class="btn btn-sm btn-gold" onclick="document.getElementById('authGate').style.display='flex'">Se connecter avec Google</button>
+    <button onclick="dismissGuestBanner()" style="background:none;border:none;color:var(--gold);font-size:16px;cursor:pointer">✕</button>
+  </div>
   <div class="content">
 
     <!-- DASHBOARD -->
@@ -609,6 +615,13 @@ async function getUserId(){
 function continuerSansCompte(){
   isGuest=true;
   demarrerApp();
+  if(!sessionStorage.getItem('gestocom_guest_banner_dismissed')){
+    document.getElementById('guest-banner').style.display='flex';
+  }
+}
+function dismissGuestBanner(){
+  document.getElementById('guest-banner').style.display='none';
+  sessionStorage.setItem('gestocom_guest_banner_dismissed','1');
 }
 
 async function demarrerApp(){
