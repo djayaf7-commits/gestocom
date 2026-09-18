@@ -383,7 +383,15 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
         <div class="card">
           <div class="card-header"><div class="card-title">🛒 Nouvelle vente — multi-produits</div></div>
           <div class="form-grid fg-2">
-            <div class="form-group full"><label>Vendeur *</label><select id="vt-vendeur"><option value="">— Choisir un vendeur —</option></select></div>
+            <div class="form-group full">
+              <label>Vendeur / Client *</label>
+              <div style="display:flex;gap:6px;margin-bottom:6px">
+                <button type="button" class="btn btn-sm" id="vt-mode-liste" onclick="setModeVendeur('liste')" style="flex:1">Vendeur enregistré</button>
+                <button type="button" class="btn btn-sm btn-ghost" id="vt-mode-libre" onclick="setModeVendeur('libre')" style="flex:1">Autre nom</button>
+              </div>
+              <select id="vt-vendeur"><option value="">— Choisir un vendeur —</option></select>
+              <input type="text" id="vt-vendeur-libre" placeholder="Nom (client, proche, etc.)" style="display:none">
+            </div>
             <div class="form-group"><label>Date</label><input type="date" id="vt-date"></div>
             <div class="form-group"><label>Note globale</label><input type="text" id="vt-note" placeholder="Optionnel..."></div>
           </div>
@@ -856,12 +864,22 @@ function supprimerVendeur(id){
 
 // ===== VENTE =====
 let venteCart=[];
+let modeVendeur='liste';
+function setModeVendeur(m){
+  modeVendeur=m;
+  const isListe=m==='liste';
+  document.getElementById('vt-vendeur').style.display=isListe?'block':'none';
+  document.getElementById('vt-vendeur-libre').style.display=isListe?'none':'block';
+  document.getElementById('vt-mode-liste').classList.toggle('btn-ghost',!isListe);
+  document.getElementById('vt-mode-libre').classList.toggle('btn-ghost',isListe);
+}
 
 function initVenteForm(){
   const sv=document.getElementById('vt-vendeur');
   sv.innerHTML='<option value="">— Choisir un vendeur —</option>'+DB.vendeurs.map(v=>`<option value="${v.id}">${esc(v.nom)}</option>`).join('');
   document.getElementById('vt-date').value=new Date().toISOString().split('T')[0];
   venteCart=[];
+  setModeVendeur('liste');
   refreshProduitSelect();
   renderPanier();
 }
@@ -924,20 +942,28 @@ function updateRecapPanier(){
 }
 
 async function enregistrerVente(){
-  const vid=document.getElementById('vt-vendeur').value;
-  const v=DB.vendeurs.find(x=>x.id===vid);
-  if(!vid||!v){alert('Sélectionnez un vendeur');return;}
+  let vendeurId='',vendeurNom='';
+  if(modeVendeur==='liste'){
+    const vid=document.getElementById('vt-vendeur').value;
+    const v=DB.vendeurs.find(x=>x.id===vid);
+    if(!vid||!v){alert('Sélectionnez un vendeur');return;}
+    vendeurId=v.id;vendeurNom=v.nom;
+  } else {
+    const nom=document.getElementById('vt-vendeur-libre').value.trim();
+    if(!nom){alert('Entrez un nom');return;}
+    vendeurId='';vendeurNom=nom;
+  }
   if(!venteCart.length){alert('Le panier est vide');return;}
   const date=document.getElementById('vt-date').value,note=document.getElementById('vt-note').value;
   let totalBen=0;
   venteCart.forEach(c=>{
     const p=DB.produits.find(x=>x.id===c.produitId);
-    const vente={id:uid(),produitId:c.produitId,produitNom:c.produitNom,produitRef:c.produitRef,vendeurId:v.id,vendeurNom:v.nom,qte:c.qte,prixVente:c.prixVente,prixAchat:c.achat,prixCession:c.cession,ca:c.prixVente*c.qte,coutAchat:c.achat*c.qte,benefice:(c.prixVente-c.achat)*c.qte,date,note};
+    const vente={id:uid(),produitId:c.produitId,produitNom:c.produitNom,produitRef:c.produitRef,vendeurId,vendeurNom,qte:c.qte,prixVente:c.prixVente,prixAchat:c.achat,prixCession:c.cession,ca:c.prixVente*c.qte,coutAchat:c.achat*c.qte,benefice:(c.prixVente-c.achat)*c.qte,date,note};
     DB.ventes.unshift(vente);totalBen+=vente.benefice;
     if(p)p.stock-=c.qte;
   });
   await saveDB();
-  venteCart=[];document.getElementById('vt-note').value='';
+  venteCart=[];document.getElementById('vt-note').value='';document.getElementById('vt-vendeur-libre').value='';
   refreshProduitSelect();renderPanier();
   showToast(`✓ Vente enregistrée ! Bénéfice : ${(totalBen>=0?'+':'')}${fcfa(totalBen)}`);
 }
