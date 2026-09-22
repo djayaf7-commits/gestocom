@@ -300,6 +300,12 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div class="page-title" id="pageTitle">Tableau de bord</div>
     <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:var(--muted2);text-transform:capitalize" id="dateNow"></span></div>
   </div>
+  <div id="install-banner" style="display:none;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 20px;background:rgba(91,140,255,0.12);border-bottom:1px solid rgba(91,140,255,0.3);">
+    <span style="font-size:18px">📲</span>
+    <span style="flex:1;min-width:200px;font-size:12px;color:var(--blue)">Installez GestoCom sur votre téléphone pour un accès plus rapide, comme une vraie application.</span>
+    <button class="btn btn-sm" style="background:var(--blue);color:#fff;border:none" onclick="lancerInstallation()">Installer l'application</button>
+    <button onclick="dismissInstallBanner()" style="background:none;border:none;color:var(--blue);font-size:16px;cursor:pointer">✕</button>
+  </div>
   <div id="guest-banner" style="display:none;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 20px;background:rgba(245,166,35,0.12);border-bottom:1px solid rgba(245,166,35,0.3);">
     <span style="font-size:18px">⚠</span>
     <span style="flex:1;min-width:200px;font-size:12px;color:var(--gold)">Vos données ne sont sauvegardées que sur cet appareil. Si vous désinstallez l'app ou changez de téléphone, elles seront perdues.</span>
@@ -658,9 +664,30 @@ function dismissOnboardHint(){
 }
 
 sb.auth.onAuthStateChange((event, session)=>{
-  if(session){ demarrerApp(); } else { document.getElementById('authGate').style.display='flex'; }
+  if(session){ isGuest=false; demarrerApp(); }
 });
-sb.auth.getSession().then(({data:{session}})=>{ if(session){ demarrerApp(); } });
+sb.auth.getSession().then(({data:{session}})=>{
+  if(session){ demarrerApp(); } else { continuerSansCompte(); }
+});
+
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  const b=document.getElementById('install-banner');
+  if(b)b.style.display='flex';
+});
+function lancerInstallation(){
+  const b=document.getElementById('install-banner');
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.finally(()=>{deferredInstallPrompt=null;if(b)b.style.display='none';});
+  }
+}
+function dismissInstallBanner(){
+  const b=document.getElementById('install-banner');
+  if(b)b.style.display='none';
+}
 
 document.addEventListener('DOMContentLoaded', ()=>{
   const btn = document.getElementById('btnGoogleLogin');
