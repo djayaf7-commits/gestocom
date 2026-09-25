@@ -581,6 +581,28 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 </div>
 
 <!-- MODAL CONFIRM -->
+<div class="overlay" id="overlay-boutique">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><div class="modal-title">Gérer la boutique</div><button class="close-btn" onclick="closeModal('overlay-boutique')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nom de la boutique</label><input type="text" id="bg-nom" placeholder="Ex : Boutique Josué"></div>
+      <div id="bg-nom-save" style="text-align:right"><button class="btn btn-sm btn-gold" onclick="renommerBoutique()">Enregistrer le nom</button></div>
+    </div>
+    <div id="bg-invite-zone" style="padding:0 24px 20px">
+      <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Inviter une personne</label>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <select id="bg-invite-role" style="flex:1"><option value="admin">Admin (accès complet)</option><option value="lecteur" selected>Lecteur (consultation uniquement)</option></select>
+        <button class="btn btn-sm btn-gold" onclick="genererInvitation()">Générer un lien</button>
+      </div>
+      <div id="bg-lien-result" style="display:none;margin-top:10px"></div>
+    </div>
+    <div style="padding:0 24px 24px">
+      <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Membres</label>
+      <div id="bg-membres-list" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay-confirm">
   <div class="modal" style="max-width:400px">
     <div class="modal-header"><div class="modal-title" id="confirm-title">Confirmation</div><button class="close-btn" onclick="closeModal('overlay-confirm')">✕</button></div>
@@ -613,6 +635,9 @@ if ('serviceWorker' in navigator) {
 }
 
 let isGuest=false;
+let currentBoutiqueId=null;
+let currentRole='admin';
+
 async function getUserId(){
   const {data:{session}} = await sb.auth.getSession();
   return session ? session.user.id : null;
@@ -630,8 +655,36 @@ function dismissGuestBanner(){
   sessionStorage.setItem('gestocom_guest_banner_dismissed','1');
 }
 
+async function resoudreBoutique(uid, email){
+  const params=new URLSearchParams(window.location.search);
+  const inviteCode=params.get('invite');
+
+  if(inviteCode){
+    const {data:invit}=await sb.from('invitations').select('*').eq('code',inviteCode).is('used_by',null).maybeSingle();
+    if(invit){
+      await sb.from('membres').insert({boutique_id:invit.boutique_id,user_id:uid,role:invit.role,email});
+      await sb.from('invitations').update({used_by:uid,used_at:new Date().toISOString()}).eq('id',invit.id);
+      currentBoutiqueId=invit.boutique_id;currentRole=invit.role;
+      window.history.replaceState({},'',window.location.pathname);
+      return;
+    }
+    window.history.replaceState({},'',window.location.pathname);
+  }
+
+  const {data:membre}=await sb.from('membres').select('*').eq('user_id',uid).maybeSingle();
+  if(membre){currentBoutiqueId=membre.boutique_id;currentRole=membre.role;return;}
+
+  const {data:boutique}=await sb.from('boutiques').insert({owner_id:uid,nom:null}).select().single();
+  await sb.from('membres').insert({boutique_id:boutique.id,user_id:uid,role:'admin',email});
+  currentBoutiqueId=boutique.id;currentRole='admin';
+}
+
 async function demarrerApp(){
   document.getElementById('authGate').style.display='none';
+  if(!isGuest){
+    const {data:{session}} = await sb.auth.getSession();
+    if(session) await resoudreBoutique(session.user.id, session.user.email);
+  }
   await ardLoad();
   await loadDB();
   document.getElementById('dateNow').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -645,12 +698,54 @@ async function updateCompteUI(){
   if(!el)return;
   if(isGuest){
     el.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Mode sans compte — données locales uniquement</div><button class="btn btn-sm btn-gold" onclick="document.getElementById(\'authGate\').style.display=\'flex\'">Se connecter avec Google</button>';
-  } else {
-    const {data:{session}} = await sb.auth.getSession();
-    if(session){
-      el.innerHTML=`<div style="font-size:12px;color:var(--text);margin-bottom:8px">${session.user.email}</div><button class="btn btn-sm btn-ghost" onclick="sb.auth.signOut().then(()=>location.reload())">Se déconnecter</button>`;
-    }
+    return;
   }
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session)return;
+  const {data:boutique}=await sb.from('boutiques').select('*').eq('id',currentBoutiqueId).maybeSingle();
+  const nomBoutique=boutique&&boutique.nom?boutique.nom:'Ma boutique';
+  el.innerHTML=`
+    <div style="font-size:12px;color:var(--text);margin-bottom:2px">${session.user.email}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${esc(nomBoutique)} · ${currentRole==='admin'?'Admin':'Lecteur'}</div>
+    <button class="btn btn-sm btn-ghost" onclick="ouvrirGestionBoutique()" style="width:100%;margin-bottom:6px">Gérer la boutique</button>
+    <button class="btn btn-sm btn-ghost" onclick="sb.auth.signOut().then(()=>location.reload())" style="width:100%">Se déconnecter</button>`;
+}
+
+async function ouvrirGestionBoutique(){
+  const {data:boutique}=await sb.from('boutiques').select('*').eq('id',currentBoutiqueId).maybeSingle();
+  document.getElementById('bg-nom').value=boutique&&boutique.nom?boutique.nom:'';
+  document.getElementById('bg-nom').disabled=currentRole!=='admin';
+  document.getElementById('bg-invite-zone').style.display=currentRole==='admin'?'block':'none';
+  document.getElementById('bg-lien-result').style.display='none';
+  await chargerMembres();
+  openModal('overlay-boutique');
+}
+
+async function renommerBoutique(){
+  const nom=document.getElementById('bg-nom').value.trim();
+  if(!nom)return;
+  await sb.from('boutiques').update({nom}).eq('id',currentBoutiqueId);
+  showToast('✓ Nom de la boutique mis à jour');
+  updateCompteUI();
+}
+
+async function chargerMembres(){
+  const {data:membres}=await sb.from('membres').select('*').eq('boutique_id',currentBoutiqueId);
+  const el=document.getElementById('bg-membres-list');
+  el.innerHTML=(membres||[]).map(m=>`<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--border)"><span>${esc(m.email||m.user_id)}</span><span style="color:var(--muted)">${m.role==='admin'?'Admin':'Lecteur'}</span></div>`).join('')||'<div style="font-size:12px;color:var(--muted)">Aucun membre</div>';
+}
+
+function genCode(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);}
+
+async function genererInvitation(){
+  const role=document.getElementById('bg-invite-role').value;
+  const {data:{session}}=await sb.auth.getSession();
+  const code=genCode();
+  await sb.from('invitations').insert({boutique_id:currentBoutiqueId,role,code,created_by:session.user.id});
+  const lien=window.location.origin+window.location.pathname+'?invite='+code;
+  const r=document.getElementById('bg-lien-result');
+  r.style.display='block';
+  r.innerHTML=`<input type="text" readonly value="${lien}" id="bg-lien-input" style="width:100%;margin-bottom:8px" onclick="this.select()"><button class="btn btn-sm btn-gold" onclick="navigator.clipboard.writeText(document.getElementById('bg-lien-input').value);showToast('✓ Lien copié')">Copier le lien</button>`;
 }
 
 function maybeShowOnboardHint(){
@@ -707,24 +802,23 @@ async function loadDB(){
     if(cached){ try{ DB = JSON.parse(cached); }catch(e){} }
     return;
   }
-  const uid = await getUserId();
-  if(!uid) return;
+  if(!currentBoutiqueId) return;
+  const bid=currentBoutiqueId;
   try{
     const [{data:produits,error:e1},{data:vendeurs,error:e2},{data:ventes,error:e3},{data:commandes,error:e4}] = await Promise.all([
-      sb.from('produits').select('*').eq('user_id',uid),
-      sb.from('vendeurs').select('*').eq('user_id',uid),
-      sb.from('ventes').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
-      sb.from('commandes').select('*').eq('user_id',uid).order('created_at',{ascending:false})
+      sb.from('produits').select('*').eq('boutique_id',bid),
+      sb.from('vendeurs').select('*').eq('boutique_id',bid),
+      sb.from('ventes').select('*').eq('boutique_id',bid).order('created_at',{ascending:false}),
+      sb.from('commandes').select('*').eq('boutique_id',bid).order('created_at',{ascending:false})
     ]);
     if(e1||e2||e3||e4) throw new Error('supabase fetch failed');
     DB.produits=(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte}));
     DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note}));
     DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note}));
     DB.commandes=(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}));
-    localStorage.setItem('gestocom_cache_'+uid, JSON.stringify(DB));
+    localStorage.setItem('gestocom_cache_'+bid, JSON.stringify(DB));
   }catch(e){
-    // Hors-ligne ou erreur reseau : on garde la derniere copie locale plutot que de tout vider
-    const cached = localStorage.getItem('gestocom_cache_'+uid);
+    const cached = localStorage.getItem('gestocom_cache_'+bid);
     if(cached){ try{ DB = JSON.parse(cached); }catch(e2){} }
   }
 }
@@ -733,18 +827,19 @@ async function saveDB(){
     localStorage.setItem('gestocom_cache_guest', JSON.stringify(DB));
     return;
   }
-  const uid = await getUserId();
-  if(!uid) return;
-  localStorage.setItem('gestocom_cache_'+uid, JSON.stringify(DB)); // securise immediatement, meme hors-ligne
+  if(!currentBoutiqueId) return;
+  const bid=currentBoutiqueId;
+  const uid=await getUserId();
+  localStorage.setItem('gestocom_cache_'+bid, JSON.stringify(DB));
   try{
-    await sb.from('produits').delete().eq('user_id', uid);
-    await sb.from('vendeurs').delete().eq('user_id', uid);
-    await sb.from('ventes').delete().eq('user_id', uid);
-    await sb.from('commandes').delete().eq('user_id', uid);
-    if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
-    if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note})));
-    if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note})));
-    if(DB.commandes.length) await sb.from('commandes').insert(DB.commandes.map(c=>({id:String(c.id),user_id:uid,client:c.client,tel:c.tel,produit_id:c.produitId?String(c.produitId):null,produit_nom:c.produitNom,qte:c.qte,prix_total:c.prixTotal,note:c.note,avances:c.avances||[],statut:c.statut,date_creation:c.dateCreation})));
+    await sb.from('produits').delete().eq('boutique_id', bid);
+    await sb.from('vendeurs').delete().eq('boutique_id', bid);
+    await sb.from('ventes').delete().eq('boutique_id', bid);
+    await sb.from('commandes').delete().eq('boutique_id', bid);
+    if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,boutique_id:bid,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
+    if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,boutique_id:bid,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note})));
+    if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,boutique_id:bid,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note})));
+    if(DB.commandes.length) await sb.from('commandes').insert(DB.commandes.map(c=>({id:String(c.id),user_id:uid,boutique_id:bid,client:c.client,tel:c.tel,produit_id:c.produitId?String(c.produitId):null,produit_nom:c.produitNom,qte:c.qte,prix_total:c.prixTotal,note:c.note,avances:c.avances||[],statut:c.statut,date_creation:c.dateCreation})));
   }catch(e){
     // Hors-ligne : les donnees restent en cache local, elles seront synchronisees au prochain saveDB() reussi
   }
@@ -1303,17 +1398,18 @@ async function ardLoad(){
     return;
   }
   const uid = await getUserId();
-  if(!uid) return;
+  if(!currentBoutiqueId) return;
+  const bid=currentBoutiqueId;
   try{
     const [{data:clients,error:e1},{data:transactions,error:e2}] = await Promise.all([
-      sb.from('clients_ardoise').select('*').eq('user_id',uid),
-      sb.from('transactions_ardoise').select('*').eq('user_id',uid)
+      sb.from('clients_ardoise').select('*').eq('boutique_id',bid),
+      sb.from('transactions_ardoise').select('*').eq('boutique_id',bid)
     ]);
     if(e1||e2) throw new Error('supabase fetch failed');
     ardData.clients=(clients||[]).map(c=>({id:c.id,nom:c.nom,tel:c.tel,transactions:(transactions||[]).filter(t=>t.client_id===c.id).map(t=>({id:t.id,type:t.type,montant:t.montant,produit:t.produit||'',date:t.date,dateEcheance:t.date_echeance||''}))}));
-    localStorage.setItem('gestocom_ardoise_cache_'+uid, JSON.stringify(ardData));
+    localStorage.setItem('gestocom_ardoise_cache_'+bid, JSON.stringify(ardData));
   }catch(e){
-    const cached = localStorage.getItem('gestocom_ardoise_cache_'+uid);
+    const cached = localStorage.getItem('gestocom_ardoise_cache_'+bid);
     if(cached){ try{ ardData = JSON.parse(cached); }catch(e2){} }
   }
 }
@@ -1322,15 +1418,16 @@ async function ardSaveData(){
     localStorage.setItem('gestocom_ardoise_cache_guest', JSON.stringify(ardData));
     return;
   }
-  const uid = await getUserId();
-  if(!uid) return;
-  localStorage.setItem('gestocom_ardoise_cache_'+uid, JSON.stringify(ardData));
+  if(!currentBoutiqueId) return;
+  const bid=currentBoutiqueId;
+  const uid=await getUserId();
+  localStorage.setItem('gestocom_ardoise_cache_'+bid, JSON.stringify(ardData));
   try{
-    await sb.from('transactions_ardoise').delete().eq('user_id', uid);
-    await sb.from('clients_ardoise').delete().eq('user_id', uid);
+    await sb.from('transactions_ardoise').delete().eq('boutique_id', bid);
+    await sb.from('clients_ardoise').delete().eq('boutique_id', bid);
     if(ardData.clients.length){
-      await sb.from('clients_ardoise').insert(ardData.clients.map(c=>({id:String(c.id),user_id:uid,nom:c.nom,tel:c.tel})));
-      const allTx=ardData.clients.flatMap(c=>(c.transactions||[]).map(t=>({id:String(t.id),user_id:uid,client_id:String(c.id),type:t.type,montant:t.montant,produit:t.produit||null,date:t.date,date_echeance:t.dateEcheance||null})));
+      await sb.from('clients_ardoise').insert(ardData.clients.map(c=>({id:String(c.id),user_id:uid,boutique_id:bid,nom:c.nom,tel:c.tel})));
+      const allTx=ardData.clients.flatMap(c=>(c.transactions||[]).map(t=>({id:String(t.id),user_id:uid,boutique_id:bid,client_id:String(c.id),type:t.type,montant:t.montant,produit:t.produit||null,date:t.date,date_echeance:t.dateEcheance||null})));
       if(allTx.length) await sb.from('transactions_ardoise').insert(allTx);
     }
   }catch(e){
