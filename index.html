@@ -762,7 +762,7 @@ sb.auth.onAuthStateChange((event, session)=>{
   if(session){ isGuest=false; demarrerApp(); }
 });
 sb.auth.getSession().then(({data:{session}})=>{
-  if(session){ demarrerApp(); } else { continuerSansCompte(); }
+  if(session){ demarrerApp(); } else { document.getElementById('authGate').style.display='flex'; }
 });
 
 let deferredInstallPrompt=null;
