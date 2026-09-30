@@ -398,7 +398,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
         <div class="card">
           <div class="card-header"><div class="card-title">🛒 Nouvelle vente — multi-produits</div></div>
           <div class="form-grid fg-2">
-            <div class="form-group full">
+            <div class="form-group full" id="vt-vendeur-bloc">
               <label>Vendeur / Client *</label>
               <div style="display:flex;gap:6px;margin-bottom:6px">
                 <button type="button" class="btn btn-sm" id="vt-mode-liste" onclick="setModeVendeur('liste')" style="flex:1">Vendeur enregistré</button>
@@ -455,10 +455,11 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
           <button class="btn btn-purple btn-sm" onclick="ouvrirModalCommande()">+ Nouvelle précommande</button>
         </div>
       </div>
-      <div class="three-col" style="margin-bottom:18px">
+      <div class="stats-grid" style="margin-bottom:18px">
         <div class="stat-card bl"><div class="stat-glow"></div><div class="stat-label">Précommandes actives</div><div class="stat-value" id="cmd-nb-actives" style="color:var(--blue)">0</div><div class="stat-sub">en attente de solde</div></div>
         <div class="stat-card gr"><div class="stat-glow"></div><div class="stat-label">Commandes soldées</div><div class="stat-value" id="cmd-nb-done" style="color:var(--green)">0</div><div class="stat-sub">payées intégralement</div></div>
         <div class="stat-card g"><div class="stat-glow"></div><div class="stat-label">Avances reçues</div><div class="stat-value" id="cmd-avances" style="color:var(--gold2)">0</div><div class="stat-sub">FCFA encaissés</div></div>
+        <div class="stat-card" style="border-color:rgba(167,139,250,.3)"><div class="stat-glow"></div><div class="stat-label">Reste à recevoir</div><div class="stat-value" id="cmd-reste" style="color:var(--purple)">0</div><div class="stat-sub">si tout est soldé</div></div>
       </div>
       <div id="cmd-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Aucune précommande</div></div></div>
     </div>
@@ -581,6 +582,17 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 </div>
 
 <!-- MODAL CONFIRM -->
+<div class="overlay" id="overlay-lien-vendeur">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">Lien d'accès vendeur</div><button class="close-btn" onclick="closeModal('overlay-lien-vendeur')">✕</button></div>
+    <div style="padding:0 24px 24px">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Envoie ce lien à ce vendeur. En se connectant avec son compte Google, il sera automatiquement rattaché à cette fiche.</p>
+      <input type="text" readonly id="lien-vendeur-input" style="width:100%;margin-bottom:10px" onclick="this.select()">
+      <button class="btn btn-sm btn-gold" style="width:100%" onclick="navigator.clipboard.writeText(document.getElementById('lien-vendeur-input').value);showToast('✓ Lien copié')">Copier le lien</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay-boutique">
   <div class="modal" style="max-width:440px">
     <div class="modal-header"><div class="modal-title">Gérer la boutique</div><button class="close-btn" onclick="closeModal('overlay-boutique')">✕</button></div>
@@ -654,7 +666,36 @@ function dismissGuestBanner(){
 
 let currentBoutiqueId=null;
 let currentRole='admin';
+let currentVendeurId=null;
 let boutiqueError=false;
+
+const SECTIONS_VENDEUR=['dashboard','vente'];
+function appliquerRoleUI(){
+  document.body.classList.remove('role-vendeur','role-lecteur');
+  if(currentRole==='vendeur'){
+    document.body.classList.add('role-vendeur');
+    document.querySelectorAll('.nav-item').forEach(n=>{
+      const m=(n.getAttribute('onclick')||'').match(/nav\(this,'(\w+)'\)/);
+      if(m && !SECTIONS_VENDEUR.includes(m[1])) n.style.display='none';
+    });
+    document.querySelectorAll('.nav-section').forEach(s=>{
+      const t=s.textContent.trim();
+      if(t==='Catalogue'||t==='Équipe'||t==='Finance') s.style.display='none';
+    });
+    document.getElementById('vt-vendeur-bloc').style.display='none';
+  } else if(currentRole==='lecteur'){
+    document.body.classList.add('role-lecteur');
+  }
+}
+
+async function donnerAccesVendeur(vendeurId){
+  const {data:{session}}=await sb.auth.getSession();
+  const code=genCode();
+  await sb.from('invitations').insert({boutique_id:currentBoutiqueId,role:'vendeur',code,created_by:session.user.id,vendeur_id:vendeurId});
+  const lien=window.location.origin+window.location.pathname+'?invite='+code;
+  document.getElementById('lien-vendeur-input').value=lien;
+  openModal('overlay-lien-vendeur');
+}
 
 async function resoudreBoutique(uid, email){
   const params=new URLSearchParams(window.location.search);
@@ -665,6 +706,9 @@ async function resoudreBoutique(uid, email){
     if(invit){
       await sb.from('membres').insert({boutique_id:invit.boutique_id,user_id:uid,role:invit.role,email});
       await sb.from('invitations').update({used_by:uid,used_at:new Date().toISOString()}).eq('id',invit.id);
+      if(invit.vendeur_id){
+        await sb.from('vendeurs').update({linked_user_id:uid}).eq('id',invit.vendeur_id).eq('boutique_id',invit.boutique_id);
+      }
       currentBoutiqueId=invit.boutique_id;currentRole=invit.role;
       window.history.replaceState({},'',window.location.pathname);
       return;
@@ -691,6 +735,12 @@ async function demarrerApp(){
   }
   await ardLoad();
   await loadDB();
+  if(currentRole==='vendeur'){
+    const {data:{session:s2}} = await sb.auth.getSession();
+    const me=DB.vendeurs.find(v=>v.linkedUserId===(s2&&s2.user.id));
+    currentVendeurId=me?me.id:null;
+  }
+  appliquerRoleUI();
   document.getElementById('dateNow').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   renderDashboard();
   maybeShowOnboardHint();
@@ -821,7 +871,7 @@ async function loadDB(){
     ]);
     if(e1||e2||e3||e4) throw new Error('supabase fetch failed');
     DB.produits=(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte}));
-    DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note}));
+    DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note,linkedUserId:v.linked_user_id||null}));
     DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note}));
     DB.commandes=(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}));
     localStorage.setItem(cacheKey, JSON.stringify(DB));
@@ -846,7 +896,7 @@ async function saveDB(){
     await sb.from('ventes').delete().eq(col, val);
     await sb.from('commandes').delete().eq(col, val);
     if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,boutique_id:currentBoutiqueId,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
-    if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,boutique_id:currentBoutiqueId,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note})));
+    if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,boutique_id:currentBoutiqueId,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note,linked_user_id:v.linkedUserId||null})));
     if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,boutique_id:currentBoutiqueId,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note})));
     if(DB.commandes.length) await sb.from('commandes').insert(DB.commandes.map(c=>({id:String(c.id),user_id:uid,boutique_id:currentBoutiqueId,client:c.client,tel:c.tel,produit_id:c.produitId?String(c.produitId):null,produit_nom:c.produitNom,qte:c.qte,prix_total:c.prixTotal,note:c.note,avances:c.avances||[],statut:c.statut,date_creation:c.dateCreation})));
   }catch(e){
@@ -1027,6 +1077,7 @@ function renderVendeurs(){
         <button class="btn btn-edit btn-sm" style="flex:1;justify-content:center" onclick="ouvrirModalVendeur('${v.id}')">✎ Modifier</button>
         <button class="btn btn-danger btn-sm" onclick="supprimerVendeur('${v.id}')">✕ Retirer</button>
       </div>
+      ${currentRole==='admin'&&!isGuest?(v.linkedUserId?`<div style="margin-top:8px;font-size:11px;color:var(--green);text-align:center">✓ A accès à l'application</div>`:`<button class="btn btn-sm btn-gold" style="width:100%;margin-top:8px" onclick="donnerAccesVendeur('${v.id}')">Donner accès à l'application</button>`):''}
     </div>`;
   }).join('');
 }
@@ -1088,7 +1139,7 @@ function renderPanier(){
   } else {
     el.innerHTML=venteCart.map((c,i)=>`
       <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:10px;margin-bottom:8px;flex-wrap:wrap">
-        <div style="flex:1;min-width:140px"><strong style="font-size:13px">${esc(c.produitNom)}</strong><br><span style="font-size:10px;color:var(--muted)">Achat: ${fcfa(c.achat)} · Cession: ${fcfa(c.cession)}</span></div>
+        <div style="flex:1;min-width:140px"><strong style="font-size:13px">${esc(c.produitNom)}</strong><br><span style="font-size:10px;color:var(--muted)">${currentRole==='vendeur'?'':'Achat: '+fcfa(c.achat)+' · '}Cession: ${fcfa(c.cession)}</span></div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="btn btn-ghost btn-sm" onclick="changerQtePanier(${i},-1)">−</button>
           <span style="min-width:20px;text-align:center;font-weight:700">${c.qte}</span>
@@ -1119,7 +1170,11 @@ function updateRecapPanier(){
 
 async function enregistrerVente(){
   let vendeurId='',vendeurNom='';
-  if(modeVendeur==='liste'){
+  if(currentRole==='vendeur'){
+    const v=DB.vendeurs.find(x=>x.id===currentVendeurId);
+    if(!v){alert('Profil vendeur introuvable');return;}
+    vendeurId=v.id;vendeurNom=v.nom;
+  } else if(modeVendeur==='liste'){
     const vid=document.getElementById('vt-vendeur').value;
     const v=DB.vendeurs.find(x=>x.id===vid);
     if(!vid||!v){alert('Sélectionnez un vendeur');return;}
@@ -1228,6 +1283,8 @@ function renderCommandes(){
   document.getElementById('cmd-nb-actives').textContent=actives.length;
   document.getElementById('cmd-nb-done').textContent=done.length;
   document.getElementById('cmd-avances').textContent=Math.round(totalAvances).toLocaleString('fr-FR');
+  const totalReste=actives.reduce((s,c)=>s+Math.max(0,c.prixTotal-(c.avances||[]).reduce((a,av)=>a+av.montant,0)),0);
+  document.getElementById('cmd-reste').textContent=Math.round(totalReste).toLocaleString('fr-FR');
   const list=document.getElementById('cmd-list');
   if(!DB.commandes.length){list.innerHTML=`<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Aucune précommande</div></div>`;return;}
   list.innerHTML=DB.commandes.map(c=>{
@@ -1302,14 +1359,19 @@ function solderCommande(id){
 function supprimerCommande(id){confirm2('Supprimer cette précommande ?','Action irréversible.',async()=>{DB.commandes=DB.commandes.filter(x=>x.id!==id);await saveDB();renderCommandes();});}
 
 let periodeMode='mois', periodeDebut='', periodeFin='';
+function ventesVisibles(){
+  if(currentRole!=='vendeur') return DB.ventes;
+  return DB.ventes.filter(v=>v.vendeurId===currentVendeurId).map(v=>({...v,coutAchat:(v.prixCession||0)*v.qte,benefice:v.ca-(v.prixCession||0)*v.qte}));
+}
 function getVentesPeriode(){
-  if(periodeMode==='tout') return DB.ventes;
+  const base=ventesVisibles();
+  if(periodeMode==='tout') return base;
   if(periodeMode==='perso'){
-    if(!periodeDebut||!periodeFin) return DB.ventes;
-    return DB.ventes.filter(v=>v.date>=periodeDebut&&v.date<=periodeFin);
+    if(!periodeDebut||!periodeFin) return base;
+    return base.filter(v=>v.date>=periodeDebut&&v.date<=periodeFin);
   }
   const ym=new Date().toISOString().slice(0,7);
-  return DB.ventes.filter(v=>v.date&&v.date.slice(0,7)===ym);
+  return base.filter(v=>v.date&&v.date.slice(0,7)===ym);
 }
 function changerPeriode(mode){
   periodeMode=mode;
