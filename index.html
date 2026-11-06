@@ -697,7 +697,16 @@ async function donnerAccesVendeur(vendeurId){
   openModal('overlay-lien-vendeur');
 }
 
-async function resoudreBoutique(uid, email){
+let _resoudrePromise=null;
+function resoudreBoutique(uid, email){
+  // Evite que deux demarrages simultanes creent chacun une boutique
+  if(!_resoudrePromise){
+    _resoudrePromise=_resoudreBoutique(uid,email).finally(()=>{_resoudrePromise=null;});
+  }
+  return _resoudrePromise;
+}
+
+async function _resoudreBoutique(uid, email){
   const params=new URLSearchParams(window.location.search);
   const inviteCode=params.get('invite');
 
@@ -716,11 +725,15 @@ async function resoudreBoutique(uid, email){
     window.history.replaceState({},'',window.location.pathname);
   }
 
-  const {data:membre}=await sb.from('membres').select('*').eq('user_id',uid).maybeSingle();
-  if(membre){currentBoutiqueId=membre.boutique_id;currentRole=membre.role;return;}
+  // On lit TOUTES les appartenances (maybeSingle echouait des qu'il y en avait 2+ et declenchait une nouvelle boutique)
+  const {data:membres,error:errM}=await sb.from('membres').select('*').eq('user_id',uid).order('created_at',{ascending:true});
+  if(errM) throw errM; // erreur reseau/permission : on ne cree JAMAIS de boutique dans ce cas
+  if(membres&&membres.length){currentBoutiqueId=membres[0].boutique_id;currentRole=membres[0].role;return;}
 
-  const {data:boutique}=await sb.from('boutiques').insert({owner_id:uid,nom:null}).select().single();
-  await sb.from('membres').insert({boutique_id:boutique.id,user_id:uid,role:'admin',email});
+  const {data:boutique,error:errB}=await sb.from('boutiques').insert({owner_id:uid,nom:null}).select().single();
+  if(errB||!boutique) throw (errB||new Error('creation boutique impossible'));
+  const {error:errI}=await sb.from('membres').insert({boutique_id:boutique.id,user_id:uid,role:'admin',email});
+  if(errI) throw errI;
   currentBoutiqueId=boutique.id;currentRole='admin';
 }
 
