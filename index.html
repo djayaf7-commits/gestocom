@@ -593,6 +593,19 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
   </div>
 </div>
 
+<div class="overlay" id="overlay-recu">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">🧾 Reçu de vente</div><button class="close-btn" onclick="closeModal('overlay-recu')">✕</button></div>
+    <div style="padding:0 24px 24px">
+      <div id="recu-body"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-gold" style="flex:1;justify-content:center" onclick="imprimerRecu()">🖨 Imprimer / PDF</button>
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="partagerRecu()">↗ Partager</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay-boutique">
   <div class="modal" style="max-width:440px">
     <div class="modal-header"><div class="modal-title">Gérer la boutique</div><button class="close-btn" onclick="closeModal('overlay-boutique')">✕</button></div>
@@ -790,7 +803,7 @@ async function ouvrirGestionBoutique(){
 }
 
 async function renommerBoutique(){
-  const nom=document.getElementById('bg-nom').value.trim();
+  const nom=document.getElementById('bg-nom').value.trim();boutiqueNomCache=null;
   if(!nom)return;
   await sb.from('boutiques').update({nom}).eq('id',currentBoutiqueId);
   showToast('✓ Nom de la boutique mis à jour');
@@ -885,7 +898,7 @@ async function loadDB(){
     if(e1||e2||e3||e4) throw new Error('supabase fetch failed');
     DB.produits=(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte}));
     DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note,linkedUserId:v.linked_user_id||null}));
-    DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note}));
+    DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note,recuId:v.recu_id||null}));
     DB.commandes=(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}));
     localStorage.setItem(cacheKey, JSON.stringify(DB));
   }catch(e){
@@ -910,7 +923,7 @@ async function saveDB(){
     await sb.from('commandes').delete().eq(col, val);
     if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,boutique_id:currentBoutiqueId,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
     if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,boutique_id:currentBoutiqueId,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note,linked_user_id:v.linkedUserId||null})));
-    if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,boutique_id:currentBoutiqueId,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note})));
+    if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,boutique_id:currentBoutiqueId,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note,recu_id:v.recuId||null})));
     if(DB.commandes.length) await sb.from('commandes').insert(DB.commandes.map(c=>({id:String(c.id),user_id:uid,boutique_id:currentBoutiqueId,client:c.client,tel:c.tel,produit_id:c.produitId?String(c.produitId):null,produit_nom:c.produitNom,qte:c.qte,prix_total:c.prixTotal,note:c.note,avances:c.avances||[],statut:c.statut,date_creation:c.dateCreation})));
   }catch(e){
     // Hors-ligne : les donnees restent en cache local, elles seront synchronisees au prochain saveDB() reussi
@@ -1200,9 +1213,10 @@ async function enregistrerVente(){
   if(!venteCart.length){alert('Le panier est vide');return;}
   const date=document.getElementById('vt-date').value,note=document.getElementById('vt-note').value;
   let totalBen=0;
+  const recuId='V'+Date.now();
   venteCart.forEach(c=>{
     const p=DB.produits.find(x=>x.id===c.produitId);
-    const vente={id:uid(),produitId:c.produitId,produitNom:c.produitNom,produitRef:c.produitRef,vendeurId,vendeurNom,qte:c.qte,prixVente:c.prixVente,prixAchat:c.achat,prixCession:c.cession,ca:c.prixVente*c.qte,coutAchat:c.achat*c.qte,benefice:(c.prixVente-c.achat)*c.qte,date,note};
+    const vente={id:uid(),recuId,produitId:c.produitId,produitNom:c.produitNom,produitRef:c.produitRef,vendeurId,vendeurNom,qte:c.qte,prixVente:c.prixVente,prixAchat:c.achat,prixCession:c.cession,ca:c.prixVente*c.qte,coutAchat:c.achat*c.qte,benefice:(c.prixVente-c.achat)*c.qte,date,note};
     DB.ventes.unshift(vente);totalBen+=vente.benefice;
     if(p)p.stock-=c.qte;
   });
@@ -1210,6 +1224,7 @@ async function enregistrerVente(){
   venteCart=[];document.getElementById('vt-note').value='';document.getElementById('vt-vendeur-libre').value='';
   refreshProduitSelect();renderPanier();
   showToast(`✓ Vente enregistrée ! Bénéfice : ${(totalBen>=0?'+':'')}${fcfa(totalBen)}`);
+  ouvrirRecu(recuId);
 }
 
 // ===== HISTORIQUE =====
@@ -1231,7 +1246,7 @@ function renderHistorique(){
     <td>${fcfa(v.prixVente)}</td><td style="color:var(--gold2)">${fcfa(v.ca)}</td>
     <td style="color:var(--red)">${fcfa(v.coutAchat)}</td>
     <td class="${v.benefice>=0?'profit-pos':'profit-neg'}">${v.benefice>=0?'+':''}${fcfa(v.benefice)}</td>
-    <td><button class="btn btn-danger btn-sm" onclick="supprimerVente('${v.id}')">✕</button></td>
+    <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" title="Voir le reçu" onclick="ouvrirRecu('${v.recuId||v.id}')">🧾</button> <button class="btn btn-danger btn-sm" onclick="supprimerVente('${v.id}')">✕</button></td>
   </tr>`).join('');
   document.getElementById('histo-footer').innerHTML=`${data.length} vente(s) · CA : <strong style="color:var(--gold2)">${fcfa(totalCA)}</strong> · Bénéfice : <strong class="${totalBen>=0?'profit-pos':'profit-neg'}">${fcfa(totalBen)}</strong>`;
 }
@@ -1241,6 +1256,55 @@ function supprimerVente(id){confirm2('Supprimer cette vente ?','La quantité ven
   if(v){const p=DB.produits.find(x=>x.id===v.produitId);if(p)p.stock=(p.stock||0)+(v.qte||0);}
   DB.ventes=DB.ventes.filter(x=>x.id!==id);saveDB();renderHistorique();renderDashboard();
 });}
+
+// ===== REÇUS =====
+let boutiqueNomCache=null,recuCourant=null;
+async function nomBoutique(){
+  if(boutiqueNomCache!==null)return boutiqueNomCache;
+  let nom='';
+  try{
+    if(!isGuest&&currentBoutiqueId){
+      const {data}=await sb.from('boutiques').select('nom').eq('id',currentBoutiqueId).maybeSingle();
+      nom=(data&&data.nom)||'';
+    }
+  }catch(e){}
+  boutiqueNomCache=nom;return nom;
+}
+const RECU_CSS='<style>.rc{background:#fff;color:#111;border-radius:12px;padding:22px;font-family:Arial,Helvetica,sans-serif;font-size:13px}.rc h3{margin:0;font-size:20px}.rc .sub{font-size:10px;letter-spacing:1px;color:#777;margin-bottom:12px}.rc hr{border:0;border-top:1px solid #ddd;margin:12px 0}.rc .r{display:flex;justify-content:space-between;gap:10px;margin:4px 0}.rc .k{color:#666}.rc .t{font-size:11px;letter-spacing:1px;font-weight:700;margin-bottom:6px}.rc .tot{font-size:16px;font-weight:700}.rc .f{text-align:center;color:#777;font-size:11px;margin-top:14px}</style>';
+async function ouvrirRecu(recuKey){
+  const lignes=DB.ventes.filter(v=>(v.recuId||v.id)===recuKey).reverse();
+  if(!lignes.length){showToast('Reçu introuvable');return;}
+  const nom=(await nomBoutique())||'GestoCom';
+  const l0=lignes[0];
+  const total=lignes.reduce((s,v)=>s+(v.ca||0),0);
+  const num=String(recuKey).toUpperCase();
+  recuCourant={num,texte:
+    nom+' — Reçu de vente\nN° '+num+'\nDate : '+fmtDate(l0.date)+'\nVendeur : '+(l0.vendeurNom||'—')+'\n\n'+
+    lignes.map(v=>'• '+v.produitNom+' : '+v.qte+' × '+fcfa(v.prixVente)+' = '+fcfa(v.ca)).join('\n')+
+    '\n\nTOTAL : '+fcfa(total)+'\nMerci pour votre confiance 🙏'};
+  document.getElementById('recu-body').innerHTML=RECU_CSS+'<div class="rc">'+
+    '<h3>'+esc(nom)+'</h3><div class="sub">REÇU DE VENTE</div><hr>'+
+    '<div class="r"><span class="k">N° Reçu</span><span>'+esc(num)+'</span></div>'+
+    '<div class="r"><span class="k">Date</span><span>'+fmtDate(l0.date)+'</span></div>'+
+    '<div class="r"><span class="k">Vendeur</span><span>'+esc(l0.vendeurNom||'—')+'</span></div><hr>'+
+    '<div class="t">DÉTAIL DES PRODUITS</div>'+
+    lignes.map(v=>'<div class="r"><span>'+esc(v.produitNom)+'</span><span>'+v.qte+' × '+fcfa(v.prixVente)+' = '+fcfa(v.ca)+'</span></div>').join('')+
+    '<hr><div class="r tot"><span>TOTAL</span><span>'+fcfa(total)+'</span></div>'+
+    '<div class="f">Merci pour votre confiance 🙏</div></div>';
+  openModal('overlay-recu');
+}
+function imprimerRecu(){
+  if(!recuCourant)return;
+  const w=window.open('','_blank','width=420,height=640');
+  if(!w){showToast('Autorise les pop-ups pour imprimer');return;}
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Reçu '+recuCourant.num+'</title></head><body style="margin:12px">'+document.getElementById('recu-body').innerHTML+'</body></html>');
+  w.document.close();w.focus();setTimeout(()=>{w.print();},300);
+}
+function partagerRecu(){
+  if(!recuCourant)return;
+  if(navigator.share){navigator.share({title:'Reçu '+recuCourant.num,text:recuCourant.texte}).catch(()=>{});}
+  else window.open('https://wa.me/?text='+encodeURIComponent(recuCourant.texte),'_blank');
+}
 
 // ===== DASHBOARD =====
 function ouvrirModalCommande(){
