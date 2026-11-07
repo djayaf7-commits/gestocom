@@ -963,8 +963,29 @@ async function _saveDB(){
     const ups=DB[t].filter(x=>snapT[String(x.id)]!==JSON.stringify(x));
     const dels=Object.keys(snapT).filter(id=>!ids.has(id));
     try{
-      for(let i=0;i<ups.length;i+=200){
-        const lot=ups.slice(i,i+200);
+      // Produits déjà connus du serveur : le stock n'est jamais écrasé, il est ajusté par le serveur (+/- delta, atomique)
+      let aEnvoyer=ups;
+      if(t==='produits'){
+        const sansStock=o=>{const c=Object.assign({},o);delete c.stock;return JSON.stringify(c);};
+        aEnvoyer=ups.filter(x=>snapT[String(x.id)]===undefined);
+        for(const x of ups.filter(x=>snapT[String(x.id)]!==undefined)){
+          const avant=JSON.parse(snapT[String(x.id)]);
+          if(sansStock(x)!==sansStock(avant)){
+            const ligne=versLigne('produits',x,uid);delete ligne.id;delete ligne.stock;
+            const {error:eu}=await sb.from('produits').update(ligne).eq('id',String(x.id));
+            if(eu) throw eu;
+          }
+          const delta=(Number(x.stock)||0)-(Number(avant.stock)||0);
+          if(delta!==0){
+            const {data:nv,error:er}=await sb.rpc('ajuster_stock',{p_id:String(x.id),p_delta:delta});
+            if(er) throw er;
+            if(nv!==null&&nv!==undefined) x.stock=Number(nv); // on adopte le stock réel du serveur (tient compte des autres vendeurs)
+          }
+          snapT[String(x.id)]=JSON.stringify(x);
+        }
+      }
+      for(let i=0;i<aEnvoyer.length;i+=200){
+        const lot=aEnvoyer.slice(i,i+200);
         const {error}=await sb.from(t).upsert(lot.map(x=>versLigne(t,x,uid)),{onConflict:'id'});
         if(error) throw error;
         lot.forEach(x=>{snapT[String(x.id)]=JSON.stringify(x);});
