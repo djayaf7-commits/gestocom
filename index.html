@@ -877,6 +877,19 @@ function esc(s){ const d=document.createElement('div'); d.textContent = s==null?
 let DB={produits:[],vendeurs:[],ventes:[],commandes:[]};
 let editProduitId=null,editVendeurId=null,confirmCb=null,currentCmdId=null;
 
+// ===== SYNCHRONISATION (jamais de "tout effacer puis tout réécrire") =====
+// syncSnap = dernier état connu du serveur {table:{id:json}}. On n'envoie que ce qui a changé.
+const SYNC_TABLES=['produits','vendeurs','ventes','commandes'];
+let syncSnap=null;
+function snapDepuis(d){const s={};SYNC_TABLES.forEach(t=>{s[t]={};(Array.isArray(d[t])?d[t]:[]).forEach(x=>{s[t][String(x.id)]=JSON.stringify(x);});});return s;}
+function versLigne(t,x,uidU){
+  const b=currentBoutiqueId;
+  if(t==='produits')return {id:String(x.id),user_id:uidU,boutique_id:b,nom:x.nom,cat:x.cat,ref:x.ref,achat:x.achat,cession:x.cession,stock:x.stock,stock_init:x.stockInit,alerte:x.alerte};
+  if(t==='vendeurs')return {id:String(x.id),user_id:uidU,boutique_id:b,nom:x.nom,tel:x.tel,zone:x.zone,note:x.note,linked_user_id:x.linkedUserId||null};
+  if(t==='ventes')return {id:String(x.id),user_id:uidU,boutique_id:b,produit_id:String(x.produitId),produit_nom:x.produitNom,produit_ref:x.produitRef,vendeur_id:String(x.vendeurId),vendeur_nom:x.vendeurNom,qte:x.qte,prix_vente:x.prixVente,prix_achat:x.prixAchat,prix_cession:x.prixCession,ca:x.ca,cout_achat:x.coutAchat,benefice:x.benefice,date:x.date,note:x.note,recu_id:x.recuId||null};
+  return {id:String(x.id),user_id:uidU,boutique_id:b,client:x.client,tel:x.tel,produit_id:x.produitId?String(x.produitId):null,produit_nom:x.produitNom,qte:x.qte,prix_total:x.prixTotal,note:x.note,avances:x.avances||[],statut:x.statut,date_creation:x.dateCreation};
+}
+
 async function loadDB(){
   if(isGuest){
     const cached = localStorage.getItem('gestocom_cache_guest');
@@ -887,7 +900,10 @@ async function loadDB(){
   if(!uid) return;
   const col = currentBoutiqueId ? 'boutique_id' : 'user_id';
   const val = currentBoutiqueId || uid;
-  const cacheKey = 'gestocom_cache_'+val;
+  const cacheKey = 'gestocom_cache_'+val, syncKey = 'gestocom_sync_'+val;
+  let cached=null, storedSnap=null;
+  try{ cached=JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){}
+  try{ storedSnap=JSON.parse(localStorage.getItem(syncKey)||'null'); }catch(e){}
   try{
     const [{data:produits,error:e1},{data:vendeurs,error:e2},{data:ventes,error:e3},{data:commandes,error:e4}] = await Promise.all([
       sb.from('produits').select('*').eq(col,val),
@@ -896,17 +912,39 @@ async function loadDB(){
       sb.from('commandes').select('*').eq(col,val).order('created_at',{ascending:false})
     ]);
     if(e1||e2||e3||e4) throw new Error('supabase fetch failed');
-    DB.produits=(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte}));
-    DB.vendeurs=(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note,linkedUserId:v.linked_user_id||null}));
-    DB.ventes=(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note,recuId:v.recu_id||null}));
-    DB.commandes=(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}));
+    const frais={
+      produits:(produits||[]).map(p=>({id:p.id,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stockInit:p.stock_init,alerte:p.alerte})),
+      vendeurs:(vendeurs||[]).map(v=>({id:v.id,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note,linkedUserId:v.linked_user_id||null})),
+      ventes:(ventes||[]).map(v=>({id:v.id,produitId:v.produit_id,produitNom:v.produit_nom,produitRef:v.produit_ref,vendeurId:v.vendeur_id,vendeurNom:v.vendeur_nom,qte:v.qte,prixVente:v.prix_vente,prixAchat:v.prix_achat,prixCession:v.prix_cession,ca:v.ca,coutAchat:v.cout_achat,benefice:v.benefice,date:v.date,note:v.note,recuId:v.recu_id||null})),
+      commandes:(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}))
+    };
+    const snap=snapDepuis(frais);
+    // Changements faits hors-ligne et pas encore envoyés : on les rejoue par-dessus l'état du serveur
+    if(cached&&storedSnap){
+      SYNC_TABLES.forEach(t=>{
+        if(!Array.isArray(cached[t])||!storedSnap[t])return;
+        const cids=new Set(cached[t].map(x=>String(x.id)));
+        cached[t].filter(x=>storedSnap[t][String(x.id)]!==JSON.stringify(x)).forEach(x=>{
+          const i=frais[t].findIndex(y=>String(y.id)===String(x.id));
+          if(i>=0)frais[t][i]=x;else frais[t].unshift(x);
+        });
+        const dels=new Set(Object.keys(storedSnap[t]).filter(id=>!cids.has(id)));
+        if(dels.size)frais[t]=frais[t].filter(y=>!dels.has(String(y.id)));
+      });
+    }
+    DB=frais; syncSnap=snap;
     localStorage.setItem(cacheKey, JSON.stringify(DB));
+    localStorage.setItem(syncKey, JSON.stringify(syncSnap));
   }catch(e){
-    const cached = localStorage.getItem(cacheKey);
-    if(cached){ try{ DB = JSON.parse(cached); }catch(e2){} }
+    // Hors-ligne : on garde le cache local. Sans état serveur connu (syncSnap nul), saveDB n'écrira rien.
+    if(cached){ DB=Object.assign({produits:[],vendeurs:[],ventes:[],commandes:[]},cached); }
+    syncSnap=storedSnap;
   }
 }
-async function saveDB(){
+
+let _saveChain=Promise.resolve();
+function saveDB(){ _saveChain=_saveChain.then(_saveDB,_saveDB); return _saveChain; }
+async function _saveDB(){
   if(isGuest){
     localStorage.setItem('gestocom_cache_guest', JSON.stringify(DB));
     return;
@@ -916,19 +954,34 @@ async function saveDB(){
   const col = currentBoutiqueId ? 'boutique_id' : 'user_id';
   const val = currentBoutiqueId || uid;
   localStorage.setItem('gestocom_cache_'+val, JSON.stringify(DB));
-  try{
-    await sb.from('produits').delete().eq(col, val);
-    await sb.from('vendeurs').delete().eq(col, val);
-    await sb.from('ventes').delete().eq(col, val);
-    await sb.from('commandes').delete().eq(col, val);
-    if(DB.produits.length) await sb.from('produits').insert(DB.produits.map(p=>({id:String(p.id),user_id:uid,boutique_id:currentBoutiqueId,nom:p.nom,cat:p.cat,ref:p.ref,achat:p.achat,cession:p.cession,stock:p.stock,stock_init:p.stockInit,alerte:p.alerte})));
-    if(DB.vendeurs.length) await sb.from('vendeurs').insert(DB.vendeurs.map(v=>({id:String(v.id),user_id:uid,boutique_id:currentBoutiqueId,nom:v.nom,tel:v.tel,zone:v.zone,note:v.note,linked_user_id:v.linkedUserId||null})));
-    if(DB.ventes.length) await sb.from('ventes').insert(DB.ventes.map(v=>({id:String(v.id),user_id:uid,boutique_id:currentBoutiqueId,produit_id:String(v.produitId),produit_nom:v.produitNom,produit_ref:v.produitRef,vendeur_id:String(v.vendeurId),vendeur_nom:v.vendeurNom,qte:v.qte,prix_vente:v.prixVente,prix_achat:v.prixAchat,prix_cession:v.prixCession,ca:v.ca,cout_achat:v.coutAchat,benefice:v.benefice,date:v.date,note:v.note,recu_id:v.recuId||null})));
-    if(DB.commandes.length) await sb.from('commandes').insert(DB.commandes.map(c=>({id:String(c.id),user_id:uid,boutique_id:currentBoutiqueId,client:c.client,tel:c.tel,produit_id:c.produitId?String(c.produitId):null,produit_nom:c.produitNom,qte:c.qte,prix_total:c.prixTotal,note:c.note,avances:c.avances||[],statut:c.statut,date_creation:c.dateCreation})));
-  }catch(e){
-    // Hors-ligne : les donnees restent en cache local, elles seront synchronisees au prochain saveDB() reussi
+  if(!syncSnap) return; // état serveur inconnu : on garde en local, aucune suppression à l'aveugle
+  let ok=true;
+  for(const t of SYNC_TABLES){
+    if(!Array.isArray(DB[t])) continue;
+    const snapT=syncSnap[t]||(syncSnap[t]={});
+    const ids=new Set(DB[t].map(x=>String(x.id)));
+    const ups=DB[t].filter(x=>snapT[String(x.id)]!==JSON.stringify(x));
+    const dels=Object.keys(snapT).filter(id=>!ids.has(id));
+    try{
+      for(let i=0;i<ups.length;i+=200){
+        const lot=ups.slice(i,i+200);
+        const {error}=await sb.from(t).upsert(lot.map(x=>versLigne(t,x,uid)),{onConflict:'id'});
+        if(error) throw error;
+        lot.forEach(x=>{snapT[String(x.id)]=JSON.stringify(x);});
+      }
+      for(let i=0;i<dels.length;i+=200){
+        const lot=dels.slice(i,i+200);
+        const {error}=await sb.from(t).delete().in('id',lot).eq(col,val);
+        if(error) throw error;
+        lot.forEach(id=>{delete snapT[id];});
+      }
+    }catch(e){ ok=false; }
   }
+  localStorage.setItem('gestocom_sync_'+val, JSON.stringify(syncSnap));
+  if(!ok) showToast('⚠ Connexion instable : modifications gardées, envoi au prochain essai');
+  return ok;
 }
+window.addEventListener('online',()=>{ saveDB(); });
 
 const fcfa=n=>Math.round(n).toLocaleString('fr-FR')+' FCFA';
 const pct=(a,b)=>b?((a/b)*100).toFixed(1)+'%':'—';
