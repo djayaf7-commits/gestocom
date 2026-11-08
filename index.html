@@ -248,16 +248,27 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
   .stat-value{font-size:17px;}
 }
 
-.pb{display:flex;flex-direction:column;gap:10px;padding:14px 16px}
-.pb-chips{display:flex;gap:6px;flex-wrap:wrap}
-.pb-chip{background:var(--bg3);border:1px solid var(--border);color:var(--muted2);border-radius:20px;padding:7px 14px;font-size:12px;font-family:Epilogue;cursor:pointer}
-.pb-chip.on{background:var(--gold);border-color:var(--gold);color:#000;font-weight:600}
-.pb-nav{display:flex;align-items:center;gap:8px}
-.pb-arrow{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;width:38px;height:36px;font-size:18px;cursor:pointer;flex:0 0 auto}
+.periode-bar{min-height:60px}
+.pb1{display:flex;align-items:center;gap:8px;padding:10px 12px;height:60px}
+.pb-arrow{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:10px;width:40px;height:40px;font-size:20px;cursor:pointer;flex:0 0 auto}
 .pb-arrow:disabled{opacity:.3;cursor:default}
-.pb-in{flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:Epilogue;min-width:0}
+.pb-main{flex:1;display:flex;align-items:center;gap:8px;height:40px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:0 12px;color:var(--text);font-family:Epilogue;font-size:13px;cursor:pointer;overflow:hidden;text-align:left}
+.pb-txt{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+.pb-n{margin-left:auto;color:var(--muted2);font-size:12px;white-space:nowrap;flex:0 0 auto}
+.pb-car{color:var(--muted);flex:0 0 auto}
+@media(max-width:400px){.pb-n{display:none}.pb-main{margin-right:0}.pb-car{margin-left:auto}}
+.pb-quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.pb-chip{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:7px 13px;font-size:12px;font-family:Epilogue;cursor:pointer}
+.pb-chip:hover{border-color:var(--gold)}
+.pb-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:12px}
+.pb-tab{flex:1;background:none;border:none;color:var(--muted2);border-radius:7px;padding:8px 4px;font-size:12px;font-family:Epilogue;cursor:pointer}
+.pb-tab.on{background:var(--gold);color:#000;font-weight:600}
+.pb-body{height:min(290px,42vh);overflow-y:auto}
+.pb-item{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);padding:12px 8px;font-size:13px;font-family:Epilogue;cursor:pointer}
+.pb-item.on{color:var(--gold2);font-weight:600}
+.pb-item:hover{background:var(--bg3)}
+.pb-in{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;font-family:Epilogue;min-width:0}
 .pb-lab{font-size:12px;color:var(--muted)}
-.pb-resume{font-size:12px;color:var(--gold2)}
 </style>
 </head>
 <body>
@@ -311,7 +322,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div class="page-title" id="pageTitle">Tableau de bord</div>
     <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:var(--muted2);text-transform:capitalize" id="dateNow"></span></div>
   </div>
-  <div id="install-banner" style="display:none;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 20px;background:rgba(91,140,255,0.12);border-bottom:1px solid rgba(91,140,255,0.3);">
+  <div id="install-banner" style="display:none;position:fixed;left:12px;right:12px;bottom:52px;z-index:1400;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 16px;background:#18213a;border:1px solid rgba(91,140,255,0.45);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);">
     <span style="font-size:18px">📲</span>
     <span style="flex:1;min-width:200px;font-size:12px;color:var(--blue)">Installez GestoCom sur votre téléphone pour un accès plus rapide, comme une vraie application.</span>
     <button class="btn btn-sm" style="background:var(--blue);color:#fff;border:none" onclick="lancerInstallation()">Installer l'application</button>
@@ -587,6 +598,13 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
         <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="imprimerRecu()" title="Imprimer / PDF">🖨</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-periode">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header" style="padding:18px 20px"><div class="modal-title">📅 Choisir la période</div><button class="close-btn" onclick="closeModal('overlay-periode')">✕</button></div>
+    <div id="pb-panel" style="padding:16px 20px 20px"></div>
   </div>
 </div>
 
@@ -1781,47 +1799,72 @@ function optionsSemaines(){
   const cur=lundiDe(periode.ref);if(periode.mode==='semaine'&&!out.includes(cur)){out.push(cur);out.sort().reverse();}
   return out;
 }
-function pb(action,val){ // toutes les actions du sélecteur : l'état change puis tout se rafraîchit immédiatement
-  const p=periode;
-  if(action==='mode'){p.mode=val;p.ref=auj();if(val==='perso'&&(!p.debut||!p.fin)){p.debut=auj().slice(0,8)+'01';p.fin=auj();}}
+function pb(action,val){ // toutes les actions : l'état change puis tout se rafraîchit immédiatement
+  const p=periode,t=auj();
+  if(action==='rapide'){
+    if(val==='auj'){p.mode='jour';p.ref=t;}
+    else if(val==='hier'){p.mode='jour';p.ref=plusJours(t,-1);}
+    else if(val==='sem'){p.mode='semaine';p.ref=t;}
+    else if(val==='mois'){p.mode='mois';p.ref=t;}
+    else if(val==='tout'){p.mode='tout';}
+  }
   else if(action==='prev'||action==='next'){const r=refVoisine(action==='prev'?-1:1);if(!r)return;p.ref=r;}
-  else if(action==='mois'){if(!val)return;p.ref=val+'-01';}
-  else if(action==='semaine'||action==='jour'){if(!val)return;p.ref=val;}
-  else if(action==='debut'){if(!val)return;p.debut=val;if(p.fin<val)p.fin=val;}
-  else if(action==='fin'){if(!val)return;p.fin=val;if(p.debut>val)p.debut=val;}
+  else if(action==='mois'){if(!val)return;p.mode='mois';p.ref=val+'-01';}
+  else if(action==='semaine'){if(!val)return;p.mode='semaine';p.ref=val;}
+  else if(action==='jour'){if(!val)return;p.mode='jour';p.ref=val;}
+  else if(action==='dates'){let[d1,d2]=val;if(!d1||!d2)return;if(d1>d2){const x=d1;d1=d2;d2=x;}p.mode='perso';p.debut=d1;p.fin=d2;}
   renderDashboard();renderBilan();
 }
-function barreHTML(){
-  const p=periode,prem=premiereActivite(),t=auj();
-  const modes=[['jour','Jour'],['semaine','Semaine'],['mois','Mois'],['tout','Tout'],['perso','Dates']];
-  let h='<div class="pb"><div class="pb-chips">'+modes.map(([k,l])=>'<button class="pb-chip'+(p.mode===k?' on':'')+'" onclick="pb(\'mode\',\''+k+'\')">'+l+'</button>').join('')+'</div>';
-  if(p.mode==='jour'||p.mode==='semaine'||p.mode==='mois'){
-    let ctrl='';
-    if(p.mode==='jour')ctrl='<input type="date" class="pb-in" min="'+prem+'" max="'+t+'" value="'+p.ref+'" onchange="pb(\'jour\',this.value)">';
-    else if(p.mode==='semaine'){const cur=lundiDe(p.ref),th=lundiDe(t);
-      ctrl='<select class="pb-in" onchange="pb(\'semaine\',this.value)">'+optionsSemaines().map(l=>'<option value="'+l+'"'+(l===cur?' selected':'')+'>'+(l===th?'Cette semaine · ':'')+libSemaine(l)+'</option>').join('')+'</select>';}
-    else{const cur=p.ref.slice(0,7),tm=t.slice(0,7);
-      ctrl='<select class="pb-in" onchange="pb(\'mois\',this.value)">'+optionsMois().map(k=>'<option value="'+k+'"'+(k===cur?' selected':'')+'>'+libMois(k)+(k===tm?' (ce mois)':'')+'</option>').join('')+'</select>';}
-    h+='<div class="pb-nav"><button class="pb-arrow" '+(refVoisine(-1)?'':'disabled ')+'onclick="pb(\'prev\')" aria-label="Précédent">‹</button>'+ctrl+'<button class="pb-arrow" '+(refVoisine(1)?'':'disabled ')+'onclick="pb(\'next\')" aria-label="Suivant">›</button></div>';
-  }
-  if(p.mode==='perso')h+='<div class="pb-nav"><span class="pb-lab">Du</span><input type="date" class="pb-in" max="'+t+'" value="'+p.debut+'" onchange="pb(\'debut\',this.value)"><span class="pb-lab">au</span><input type="date" class="pb-in" max="'+t+'" value="'+p.fin+'" onchange="pb(\'fin\',this.value)"></div>';
-  return h+'<div class="pb-resume"></div></div>';
+function libCourt(){ // texte court affiché sur la barre (une seule ligne)
+  const p=periode,t=auj(),{debut,fin}=plagePeriode();
+  if(p.mode==='tout')return'Depuis le début';
+  if(p.mode==='jour')return p.ref===t?"Aujourd'hui":p.ref===plusJours(t,-1)?'Hier':dateCourte(p.ref,true);
+  if(p.mode==='semaine')return(debut<=t&&t<=fin)?'Cette semaine':libSemaine(debut);
+  if(p.mode==='mois')return libMois(p.ref.slice(0,7));
+  return dateCourte(debut)+' – '+dateCourte(fin,true);
 }
-function resumePeriode(){
-  const p=periode,t=auj(),{debut,fin}=plagePeriode(),n=getVentesPeriode().length;let txt;
-  if(p.mode==='tout')txt='Depuis le début ('+dateCourte(premiereActivite(),true)+')';
-  else if(p.mode==='jour')txt=(p.ref===t?"Aujourd'hui · ":p.ref===plusJours(t,-1)?'Hier · ':'')+dateLongue(p.ref);
-  else if(p.mode==='semaine')txt='Du '+dateCourte(debut)+' au '+dateCourte(fin,true)+(debut<=t&&t<=fin?' · cette semaine':'');
-  else if(p.mode==='mois')txt=libMois(p.ref.slice(0,7))+(p.ref.slice(0,7)===t.slice(0,7)?' · ce mois':'');
-  else txt='Du '+dateCourte(debut,true)+' au '+dateCourte(fin,true);
-  return txt+' · '+n+' vente'+(n>1?'s':'');
+function barreHTML(){ // TOUJOURS une seule ligne de hauteur fixe : rien ne descend quand on change de période
+  const p=periode,nav=(p.mode==='jour'||p.mode==='semaine'||p.mode==='mois');
+  return '<div class="pb1"><button class="pb-arrow" '+(nav&&refVoisine(-1)?'':'disabled ')+'onclick="pb(\'prev\')" aria-label="Période précédente">‹</button>'+
+    '<button class="pb-main" onclick="ouvrirPeriode()"><span>📅</span><span class="pb-txt">'+libCourt()+'</span><span class="pb-n"></span><span class="pb-car">▾</span></button>'+
+    '<button class="pb-arrow" '+(nav&&refVoisine(1)?'':'disabled ')+'onclick="pb(\'next\')" aria-label="Période suivante">›</button></div>';
 }
 function renderPeriodeBar(){
   const bars=[].slice.call(document.querySelectorAll('.periode-bar'));
   const sig=[periode.mode,periode.ref,periode.debut,periode.fin,premiereActivite(),auj()].join('|');
   if(sig!==_barSig||bars.some(b=>!b.firstChild)){_barSig=sig;const h=barreHTML();bars.forEach(b=>{b.innerHTML=h;});}
-  const r=resumePeriode();
-  document.querySelectorAll('.pb-resume').forEach(e=>{e.textContent=r;});
+  const n=getVentesPeriode().length,txt=n+' vente'+(n>1?'s':'');
+  document.querySelectorAll('.pb-n').forEach(e=>{e.textContent=txt;});
+}
+
+// ----- Fenêtre de choix de la période (s'ouvre PAR-DESSUS la page : ne déplace aucun élément) -----
+let pbOnglet='mois';
+function ouvrirPeriode(){
+  pbOnglet=['jour','semaine','mois','perso'].includes(periode.mode)?periode.mode:'mois';
+  rendrePanneauPeriode();openModal('overlay-periode');
+}
+function pbTab(k){pbOnglet=k;rendrePanneauPeriode();}
+function pbPick(action,val){pb(action,val);closeModal('overlay-periode');}
+function pbAppliquerDates(){
+  const d1=document.getElementById('pb-d1').value,d2=document.getElementById('pb-d2').value;
+  if(!d1||!d2){showToast('Choisis une date de début et une date de fin');return;}
+  pbPick('dates',[d1,d2]);
+}
+function rendrePanneauPeriode(){
+  const p=periode,t=auj(),prem=premiereActivite();
+  const rap=[['auj',"Aujourd'hui"],['hier','Hier'],['sem','Cette semaine'],['mois','Ce mois'],['tout','Tout']];
+  const tabs=[['jour','Jour'],['semaine','Semaine'],['mois','Mois'],['perso','Dates']];
+  let h='<div class="pb-quick">'+rap.map(([k,l])=>'<button class="pb-chip" onclick="pbPick(\'rapide\',\''+k+'\')">'+l+'</button>').join('')+'</div>'+
+    '<div class="pb-tabs">'+tabs.map(([k,l])=>'<button class="pb-tab'+(pbOnglet===k?' on':'')+'" onclick="pbTab(\''+k+'\')">'+l+'</button>').join('')+'</div><div class="pb-body">';
+  if(pbOnglet==='jour')h+='<div class="pb-lab">Choisis un jour</div><input type="date" class="pb-in" style="width:100%;margin-top:8px" min="'+prem+'" max="'+t+'" value="'+(p.mode==='jour'?p.ref:t)+'" onchange="pbPick(\'jour\',this.value)">';
+  else if(pbOnglet==='semaine'){const cur=p.mode==='semaine'?lundiDe(p.ref):'',th=lundiDe(t);
+    h+=optionsSemaines().map(l=>'<button class="pb-item'+(l===cur?' on':'')+'" onclick="pbPick(\'semaine\',\''+l+'\')">'+(l===th?'Cette semaine · ':'')+libSemaine(l)+'</button>').join('');}
+  else if(pbOnglet==='mois'){const cur=p.mode==='mois'?p.ref.slice(0,7):'',tm=t.slice(0,7);
+    h+=optionsMois().map(k=>'<button class="pb-item'+(k===cur?' on':'')+'" onclick="pbPick(\'mois\',\''+k+'\')">'+libMois(k)+(k===tm?' · ce mois':'')+'</button>').join('');}
+  else h+='<div class="pb-lab">Du</div><input type="date" id="pb-d1" class="pb-in" style="width:100%;margin:6px 0 14px" max="'+t+'" value="'+(p.mode==='perso'?p.debut:prem)+'">'+
+    '<div class="pb-lab">Au</div><input type="date" id="pb-d2" class="pb-in" style="width:100%;margin:6px 0 14px" max="'+t+'" value="'+(p.mode==='perso'?p.fin:t)+'">'+
+    '<button class="btn btn-gold" style="width:100%;justify-content:center" onclick="pbAppliquerDates()">Appliquer</button>';
+  document.getElementById('pb-panel').innerHTML=h+'</div>';
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ try{renderDashboard();renderBilan();}catch(e){} } });
 function renderDashboard(){
