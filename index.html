@@ -252,6 +252,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 </head>
 <body>
 
+<div id="sync-status" style="display:none;position:fixed;left:12px;bottom:12px;z-index:1500;padding:6px 12px;border-radius:20px;font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--gold2);max-width:85vw"></div>
 <script src="vendor/supabase.js"></script>
 <div class="sidebar-scrim" id="sidebarScrim" onclick="toggleSidebar(false)"></div>
 <div id="authGate" style="position:fixed;inset:0;background:#0E0F13;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Epilogue',sans-serif;">
@@ -599,8 +600,9 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div style="padding:0 24px 24px">
       <div id="recu-body"></div>
       <div style="display:flex;gap:8px;margin-top:14px">
-        <button class="btn btn-gold" style="flex:1;justify-content:center" onclick="imprimerRecu()">🖨 Imprimer / PDF</button>
-        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="partagerRecu()">↗ Partager</button>
+        <button class="btn btn-gold" style="flex:2;justify-content:center" onclick="partagerRecu()">↗ Envoyer en image</button>
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="telechargerRecu()" title="Enregistrer l'image">⬇ Image</button>
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="imprimerRecu()" title="Imprimer / PDF">🖨</button>
       </div>
     </div>
   </div>
@@ -661,8 +663,13 @@ if ('serviceWorker' in navigator) {
 
 let isGuest=false;
 async function getUserId(){
-  const {data:{session}} = await sb.auth.getSession();
-  return session ? session.user.id : null;
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    if(session) return session.user.id;
+  }catch(e){}
+  // Hors-ligne sans session valide : dernier utilisateur connu sur cet appareil (données locales uniquement)
+  if(!navigator.onLine){ const c=lireCtx(); if(c&&c.uid) return c.uid; }
+  return null;
 }
 
 function continuerSansCompte(){
@@ -714,7 +721,7 @@ let _resoudrePromise=null;
 function resoudreBoutique(uid, email){
   // Evite que deux demarrages simultanes creent chacun une boutique
   if(!_resoudrePromise){
-    _resoudrePromise=_resoudreBoutique(uid,email).finally(()=>{_resoudrePromise=null;});
+    _resoudrePromise=_resoudreBoutique(uid,email).then(()=>{sauverCtx(uid);}).finally(()=>{_resoudrePromise=null;});
   }
   return _resoudrePromise;
 }
@@ -753,17 +760,24 @@ async function _resoudreBoutique(uid, email){
 async function demarrerApp(){
   document.getElementById('authGate').style.display='none';
   boutiqueError=false;
+  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){} // empêche le navigateur d'effacer les données locales
   if(!isGuest){
+    let session=null;
+    try{ session=(await sb.auth.getSession()).data.session; }catch(e){}
     try{
-      const {data:{session}} = await sb.auth.getSession();
       if(session) await resoudreBoutique(session.user.id, session.user.email);
-    }catch(e){ boutiqueError=true; }
+      else if(!navigator.onLine){ if(!appliquerCtxAppareil(null)) boutiqueError=true; }
+    }catch(e){
+      // Réseau coupé ou instable : on reprend la boutique et le rôle mémorisés sur l'appareil
+      if(!appliquerCtxAppareil(session)) boutiqueError=true;
+    }
   }
   await ardLoad();
   await loadDB();
   if(currentRole==='vendeur'){
-    const {data:{session:s2}} = await sb.auth.getSession();
-    const me=DB.vendeurs.find(v=>v.linkedUserId===(s2&&s2.user.id));
+    let s2=null; try{ s2=(await sb.auth.getSession()).data.session; }catch(e){}
+    const monId=(s2&&s2.user.id)||((lireCtx()||{}).uid);
+    const me=DB.vendeurs.find(v=>v.linkedUserId===monId);
     currentVendeurId=me?me.id:null;
   }
   appliquerRoleUI();
@@ -843,7 +857,11 @@ sb.auth.onAuthStateChange((event, session)=>{
   if(session){ isGuest=false; demarrerApp(); }
 });
 sb.auth.getSession().then(({data:{session}})=>{
-  if(session){ demarrerApp(); } else { document.getElementById('authGate').style.display='flex'; }
+  if(session){ demarrerApp(); }
+  else if(!navigator.onLine && lireCtx()){ demarrerApp(); } // ouverture hors-ligne avec les données de l'appareil
+  else { document.getElementById('authGate').style.display='flex'; }
+}).catch(()=>{
+  if(lireCtx()){ demarrerApp(); } else { document.getElementById('authGate').style.display='flex'; }
 });
 
 let deferredInstallPrompt=null;
@@ -880,14 +898,46 @@ let editProduitId=null,editVendeurId=null,confirmCb=null,currentCmdId=null;
 // ===== SYNCHRONISATION (jamais de "tout effacer puis tout réécrire") =====
 // syncSnap = dernier état connu du serveur {table:{id:json}}. On n'envoie que ce qui a changé.
 const SYNC_TABLES=['produits','vendeurs','ventes','commandes'];
-let syncSnap=null;
+let syncSnap=null, dbCharge=false;
+function lsSet(k,v){
+  try{ localStorage.setItem(k,v); return true; }
+  catch(e){ if(!lsSet._av){ lsSet._av=true; showToast('⚠ Mémoire de l\'appareil pleine : exporte une sauvegarde'); } return false; }
+}
+function toastSync(msg){ if(Date.now()-(toastSync.t||0)>120000){ toastSync.t=Date.now(); showToast(msg); } }
 function snapDepuis(d){const s={};SYNC_TABLES.forEach(t=>{s[t]={};(Array.isArray(d[t])?d[t]:[]).forEach(x=>{s[t][String(x.id)]=JSON.stringify(x);});});return s;}
+function diffTable(list,snapT){
+  const ids=new Set(list.map(x=>String(x.id)));
+  return {ups:list.filter(x=>snapT[String(x.id)]!==JSON.stringify(x)), dels:Object.keys(snapT).filter(id=>!ids.has(id))};
+}
 function versLigne(t,x,uidU){
   const b=currentBoutiqueId;
   if(t==='produits')return {id:String(x.id),user_id:uidU,boutique_id:b,nom:x.nom,cat:x.cat,ref:x.ref,achat:x.achat,cession:x.cession,stock:x.stock,stock_init:x.stockInit,alerte:x.alerte};
   if(t==='vendeurs')return {id:String(x.id),user_id:uidU,boutique_id:b,nom:x.nom,tel:x.tel,zone:x.zone,note:x.note,linked_user_id:x.linkedUserId||null};
   if(t==='ventes')return {id:String(x.id),user_id:uidU,boutique_id:b,produit_id:String(x.produitId),produit_nom:x.produitNom,produit_ref:x.produitRef,vendeur_id:String(x.vendeurId),vendeur_nom:x.vendeurNom,qte:x.qte,prix_vente:x.prixVente,prix_achat:x.prixAchat,prix_cession:x.prixCession,ca:x.ca,cout_achat:x.coutAchat,benefice:x.benefice,date:x.date,note:x.note,recu_id:x.recuId||null};
   return {id:String(x.id),user_id:uidU,boutique_id:b,client:x.client,tel:x.tel,produit_id:x.produitId?String(x.produitId):null,produit_nom:x.produitNom,qte:x.qte,prix_total:x.prixTotal,note:x.note,avances:x.avances||[],statut:x.statut,date_creation:x.dateCreation};
+}
+
+// Contexte mémorisé sur l'appareil (boutique + rôle) pour pouvoir ouvrir l'app sans réseau
+function sauverCtx(uid){ lsSet('gestocom_ctx',JSON.stringify({uid,boutiqueId:currentBoutiqueId,role:currentRole})); }
+function lireCtx(){ try{ return JSON.parse(localStorage.getItem('gestocom_ctx')||'null'); }catch(e){ return null; } }
+function appliquerCtxAppareil(session){
+  const c=lireCtx();
+  if(c&&c.boutiqueId&&(!session||c.uid===session.user.id)){ currentBoutiqueId=c.boutiqueId; currentRole=c.role||'admin'; return true; }
+  return false;
+}
+
+// Fusion au chargement : (1) si le serveur a été vidé alors qu'il contenait des données connues, on restaure
+// depuis l'appareil ; (2) les modifications faites hors-ligne et pas encore envoyées sont rejouées sur l'état serveur.
+function fusionnerLocal(frais,base,refSnap,snap){
+  const restaures=[];
+  SYNC_TABLES.forEach(t=>{
+    if(!base||!Array.isArray(base[t])||!refSnap||!refSnap[t])return;
+    if(frais[t].length===0&&base[t].length>0&&Object.keys(refSnap[t]).length>0){ frais[t]=base[t].slice(); snap[t]={}; restaures.push(t); return; }
+    const {ups,dels}=diffTable(base[t],refSnap[t]);
+    ups.forEach(x=>{const i=frais[t].findIndex(y=>String(y.id)===String(x.id));if(i>=0)frais[t][i]=x;else frais[t].unshift(x);});
+    if(dels.length){const d=new Set(dels);frais[t]=frais[t].filter(y=>!d.has(String(y.id)));}
+  });
+  return restaures;
 }
 
 async function loadDB(){
@@ -901,9 +951,7 @@ async function loadDB(){
   const col = currentBoutiqueId ? 'boutique_id' : 'user_id';
   const val = currentBoutiqueId || uid;
   const cacheKey = 'gestocom_cache_'+val, syncKey = 'gestocom_sync_'+val;
-  let cached=null, storedSnap=null;
-  try{ cached=JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){}
-  try{ storedSnap=JSON.parse(localStorage.getItem(syncKey)||'null'); }catch(e){}
+  const lire=(k)=>{ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } };
   try{
     const [{data:produits,error:e1},{data:vendeurs,error:e2},{data:ventes,error:e3},{data:commandes,error:e4}] = await Promise.all([
       sb.from('produits').select('*').eq(col,val),
@@ -919,49 +967,44 @@ async function loadDB(){
       commandes:(commandes||[]).map(c=>({id:c.id,client:c.client,tel:c.tel,produitId:c.produit_id,produitNom:c.produit_nom,qte:c.qte,prixTotal:c.prix_total,note:c.note,avances:c.avances||[],statut:c.statut,dateCreation:c.date_creation}))
     };
     const snap=snapDepuis(frais);
-    // Changements faits hors-ligne et pas encore envoyés : on les rejoue par-dessus l'état du serveur
-    if(cached&&storedSnap){
-      SYNC_TABLES.forEach(t=>{
-        if(!Array.isArray(cached[t])||!storedSnap[t])return;
-        const cids=new Set(cached[t].map(x=>String(x.id)));
-        cached[t].filter(x=>storedSnap[t][String(x.id)]!==JSON.stringify(x)).forEach(x=>{
-          const i=frais[t].findIndex(y=>String(y.id)===String(x.id));
-          if(i>=0)frais[t][i]=x;else frais[t].unshift(x);
-        });
-        const dels=new Set(Object.keys(storedSnap[t]).filter(id=>!cids.has(id)));
-        if(dels.size)frais[t]=frais[t].filter(y=>!dels.has(String(y.id)));
-      });
-    }
-    DB=frais; syncSnap=snap;
-    localStorage.setItem(cacheKey, JSON.stringify(DB));
-    localStorage.setItem(syncKey, JSON.stringify(syncSnap));
+    // État local le plus récent : la mémoire si déjà chargée, sinon le cache de l'appareil
+    const cached=lire(cacheKey), storedSnap=lire(syncKey);
+    const base=dbCharge?DB:cached, refSnap=dbCharge?syncSnap:storedSnap;
+    if(cached&&!refSnap) lsSet(cacheKey+'_avant_maj',JSON.stringify(cached)); // filet de sécurité (première fois seulement)
+    const restaures=fusionnerLocal(frais,base,refSnap,snap);
+    DB=frais; syncSnap=snap; dbCharge=true;
+    lsSet(cacheKey, JSON.stringify(DB));
+    lsSet(syncKey, JSON.stringify(syncSnap));
+    if(restaures.length){ showToast('♻ Données restaurées depuis cet appareil ('+restaures.join(', ')+')'); saveDB(); }
   }catch(e){
     // Hors-ligne : on garde le cache local. Sans état serveur connu (syncSnap nul), saveDB n'écrira rien.
-    if(cached){ DB=Object.assign({produits:[],vendeurs:[],ventes:[],commandes:[]},cached); }
-    syncSnap=storedSnap;
+    if(!dbCharge){
+      const cached=lire(cacheKey);
+      if(cached){ DB=Object.assign({produits:[],vendeurs:[],ventes:[],commandes:[]},cached); }
+      syncSnap=lire(syncKey); dbCharge=true;
+    }
   }
+  majStatutSync();
 }
 
 let _saveChain=Promise.resolve();
 function saveDB(){ _saveChain=_saveChain.then(_saveDB,_saveDB); return _saveChain; }
 async function _saveDB(){
   if(isGuest){
-    localStorage.setItem('gestocom_cache_guest', JSON.stringify(DB));
+    lsSet('gestocom_cache_guest', JSON.stringify(DB));
     return;
   }
   const uid = await getUserId();
   if(!uid) return;
   const col = currentBoutiqueId ? 'boutique_id' : 'user_id';
   const val = currentBoutiqueId || uid;
-  localStorage.setItem('gestocom_cache_'+val, JSON.stringify(DB));
-  if(!syncSnap) return; // état serveur inconnu : on garde en local, aucune suppression à l'aveugle
+  lsSet('gestocom_cache_'+val, JSON.stringify(DB)); // toujours d'abord sur l'appareil
+  if(!syncSnap){ majStatutSync(); return; } // état serveur inconnu : on garde en local, aucune suppression à l'aveugle
   let ok=true;
   for(const t of SYNC_TABLES){
     if(!Array.isArray(DB[t])) continue;
     const snapT=syncSnap[t]||(syncSnap[t]={});
-    const ids=new Set(DB[t].map(x=>String(x.id)));
-    const ups=DB[t].filter(x=>snapT[String(x.id)]!==JSON.stringify(x));
-    const dels=Object.keys(snapT).filter(id=>!ids.has(id));
+    const {ups,dels}=diffTable(DB[t],snapT);
     try{
       // Produits déjà connus du serveur : le stock n'est jamais écrasé, il est ajusté par le serveur (+/- delta, atomique)
       let aEnvoyer=ups;
@@ -998,11 +1041,142 @@ async function _saveDB(){
       }
     }catch(e){ ok=false; }
   }
-  localStorage.setItem('gestocom_sync_'+val, JSON.stringify(syncSnap));
-  if(!ok) showToast('⚠ Connexion instable : modifications gardées, envoi au prochain essai');
+  lsSet('gestocom_sync_'+val, JSON.stringify(syncSnap));
+  if(!ok) toastSync('⚠ Connexion instable : modifications gardées sur l\'appareil, envoi automatique dès que possible');
+  majStatutSync();
   return ok;
 }
-window.addEventListener('online',()=>{ saveDB(); });
+
+// ----- Ardoise : même principe (différences uniquement) -----
+let ardSnap=null, ardCharge=false;
+const ARD_T=[['clients','clients_ardoise'],['transactions','transactions_ardoise']];
+function ardAplatir(a){
+  const clients=[],transactions=[];
+  ((a&&a.clients)||[]).forEach(c=>{
+    clients.push({id:String(c.id),nom:c.nom,tel:c.tel});
+    (c.transactions||[]).forEach(t=>transactions.push({id:String(t.id),clientId:String(c.id),type:t.type,montant:t.montant,produit:t.produit||'',date:t.date,dateEcheance:t.dateEcheance||''}));
+  });
+  return {clients,transactions};
+}
+function ardReconstruire(f){
+  return {clients:f.clients.map(c=>({id:c.id,nom:c.nom,tel:c.tel,transactions:f.transactions.filter(t=>t.clientId===c.id).map(t=>({id:t.id,type:t.type,montant:t.montant,produit:t.produit||'',date:t.date,dateEcheance:t.dateEcheance||''}))}))};
+}
+function ardSnapDepuis(f){const s={};ARD_T.forEach(([k])=>{s[k]={};f[k].forEach(x=>{s[k][x.id]=JSON.stringify(x);});});return s;}
+function ardLigne(k,x,uid){
+  const b=currentBoutiqueId;
+  if(k==='clients')return {id:x.id,user_id:uid,boutique_id:b,nom:x.nom,tel:x.tel};
+  return {id:x.id,user_id:uid,boutique_id:b,client_id:x.clientId,type:x.type,montant:x.montant,produit:x.produit||null,date:x.date,date_echeance:x.dateEcheance||null};
+}
+
+async function ardLoad(){
+  if(isGuest){
+    const cached = localStorage.getItem('gestocom_ardoise_cache_guest');
+    if(cached){ try{ ardData = JSON.parse(cached); }catch(e){} }
+    return;
+  }
+  const uid = await getUserId();
+  if(!uid) return;
+  const col = currentBoutiqueId ? 'boutique_id' : 'user_id';
+  const val = currentBoutiqueId || uid;
+  const cacheKey='gestocom_ardoise_cache_'+val, syncKey='gestocom_ardsync_'+val;
+  const lire=(k)=>{ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } };
+  try{
+    const [{data:clients,error:e1},{data:transactions,error:e2}] = await Promise.all([
+      sb.from('clients_ardoise').select('*').eq(col,val),
+      sb.from('transactions_ardoise').select('*').eq(col,val)
+    ]);
+    if(e1||e2) throw new Error('supabase fetch failed');
+    const arbre={clients:(clients||[]).map(c=>({id:c.id,nom:c.nom,tel:c.tel,transactions:(transactions||[]).filter(t=>t.client_id===c.id).map(t=>({id:t.id,type:t.type,montant:t.montant,produit:t.produit||'',date:t.date,dateEcheance:t.date_echeance||''}))}))};
+    const frais=ardAplatir(arbre), snap=ardSnapDepuis(frais);
+    const cached=lire(cacheKey), storedSnap=lire(syncKey);
+    const baseFlat=ardCharge?ardAplatir(ardData):(cached?ardAplatir(cached):null);
+    const refSnap=ardCharge?ardSnap:storedSnap;
+    const restaures=[];
+    if(baseFlat&&refSnap){
+      ARD_T.forEach(([k])=>{
+        const rs=refSnap[k]||{};
+        if(frais[k].length===0&&baseFlat[k].length>0&&Object.keys(rs).length>0){ frais[k]=baseFlat[k].slice(); snap[k]={}; restaures.push(k); return; }
+        const {ups,dels}=diffTable(baseFlat[k],rs);
+        ups.forEach(x=>{const i=frais[k].findIndex(y=>y.id===x.id);if(i>=0)frais[k][i]=x;else frais[k].push(x);});
+        if(dels.length){const d=new Set(dels);frais[k]=frais[k].filter(y=>!d.has(y.id));}
+      });
+    }
+    ardData.clients=ardReconstruire(frais).clients; ardSnap=snap; ardCharge=true;
+    lsSet(cacheKey, JSON.stringify(ardData));
+    lsSet(syncKey, JSON.stringify(ardSnap));
+    if(restaures.length){ showToast('♻ Ardoise restaurée depuis cet appareil'); ardSaveData(); }
+  }catch(e){
+    if(!ardCharge){
+      const cached=lire(cacheKey);
+      if(cached){ ardData=cached; }
+      ardSnap=lire(syncKey); ardCharge=true;
+    }
+  }
+  majStatutSync();
+}
+
+let _ardChain=Promise.resolve();
+function ardSaveData(){ _ardChain=_ardChain.then(_ardSave,_ardSave); return _ardChain; }
+async function _ardSave(){
+  if(isGuest){
+    lsSet('gestocom_ardoise_cache_guest', JSON.stringify(ardData));
+    return;
+  }
+  const uid = await getUserId();
+  if(!uid) return;
+  const col = currentBoutiqueId ? 'boutique_id' : 'user_id';
+  const val = currentBoutiqueId || uid;
+  lsSet('gestocom_ardoise_cache_'+val, JSON.stringify(ardData));
+  if(!ardSnap){ majStatutSync(); return; }
+  const flat=ardAplatir(ardData);
+  let ok=true;
+  try{
+    for(const [k,table] of ARD_T){ // ajouts / modifications : clients d'abord, puis transactions
+      const snapT=ardSnap[k]||(ardSnap[k]={});
+      const {ups}=diffTable(flat[k],snapT);
+      for(let i=0;i<ups.length;i+=200){
+        const lot=ups.slice(i,i+200);
+        const {error}=await sb.from(table).upsert(lot.map(x=>ardLigne(k,x,uid)),{onConflict:'id'});
+        if(error) throw error;
+        lot.forEach(x=>{snapT[x.id]=JSON.stringify(x);});
+      }
+    }
+    for(const [k,table] of ARD_T.slice().reverse()){ // suppressions : transactions d'abord, puis clients
+      const snapT=ardSnap[k]||(ardSnap[k]={});
+      const {dels}=diffTable(flat[k],snapT);
+      for(let i=0;i<dels.length;i+=200){
+        const lot=dels.slice(i,i+200);
+        const {error}=await sb.from(table).delete().in('id',lot).eq(col,val);
+        if(error) throw error;
+        lot.forEach(id=>{delete snapT[id];});
+      }
+    }
+  }catch(e){ ok=false; }
+  lsSet('gestocom_ardsync_'+val, JSON.stringify(ardSnap));
+  if(!ok) toastSync('⚠ Connexion instable : modifications gardées sur l\'appareil, envoi automatique dès que possible');
+  majStatutSync();
+  return ok;
+}
+
+// ----- Indicateur d'état + reprise automatique -----
+function nbEnAttente(){
+  let n=0;
+  if(syncSnap) SYNC_TABLES.forEach(t=>{ if(Array.isArray(DB[t])){ const d=diffTable(DB[t],syncSnap[t]||{}); n+=d.ups.length+d.dels.length; } });
+  if(ardSnap){ const f=ardAplatir(ardData); ARD_T.forEach(([k])=>{ const d=diffTable(f[k],ardSnap[k]||{}); n+=d.ups.length+d.dels.length; }); }
+  return n;
+}
+function majStatutSync(){
+  const el=document.getElementById('sync-status'); if(!el) return;
+  if(isGuest){ el.style.display='none'; return; }
+  const n=nbEnAttente(), hors=!navigator.onLine;
+  if(hors||n>0){
+    el.style.display='block';
+    el.textContent=(hors?'📴 Hors ligne — données gardées sur cet appareil':'⏳ Envoi en cours')+(n?' · '+n+' modification'+(n>1?'s':'')+' en attente':'');
+  } else el.style.display='none';
+}
+window.addEventListener('online',()=>{ saveDB(); ardSaveData(); majStatutSync(); });
+window.addEventListener('offline',majStatutSync);
+setInterval(()=>{ if(!isGuest&&navigator.onLine&&nbEnAttente()>0){ saveDB(); ardSaveData(); } else majStatutSync(); },20000);
 
 const fcfa=n=>Math.round(n).toLocaleString('fr-FR')+' FCFA';
 const pct=(a,b)=>b?((a/b)*100).toFixed(1)+'%':'—';
@@ -1352,10 +1526,8 @@ async function ouvrirRecu(recuKey){
   const l0=lignes[0];
   const total=lignes.reduce((s,v)=>s+(v.ca||0),0);
   const num=String(recuKey).toUpperCase();
-  recuCourant={num,texte:
-    nom+' — Reçu de vente\nN° '+num+'\nDate : '+fmtDate(l0.date)+'\nVendeur : '+(l0.vendeurNom||'—')+'\n\n'+
-    lignes.map(v=>'• '+v.produitNom+' : '+v.qte+' × '+fcfa(v.prixVente)+' = '+fcfa(v.ca)).join('\n')+
-    '\n\nTOTAL : '+fcfa(total)+'\nMerci pour votre confiance 🙏'};
+  recuCourant={num,nom,date:fmtDate(l0.date),vendeur:l0.vendeurNom||'—',total,blob:null,
+    lignes:lignes.map(v=>({nom:v.produitNom,qte:v.qte,pu:v.prixVente,tot:v.ca}))};
   document.getElementById('recu-body').innerHTML=RECU_CSS+'<div class="rc">'+
     '<h3>'+esc(nom)+'</h3><div class="sub">REÇU DE VENTE</div><hr>'+
     '<div class="r"><span class="k">N° Reçu</span><span>'+esc(num)+'</span></div>'+
@@ -1366,6 +1538,7 @@ async function ouvrirRecu(recuKey){
     '<hr><div class="r tot"><span>TOTAL</span><span>'+fcfa(total)+'</span></div>'+
     '<div class="f">Merci pour votre confiance 🙏</div></div>';
   openModal('overlay-recu');
+  dessinerRecu(recuCourant).toBlob(b=>{ if(recuCourant&&recuCourant.num===num) recuCourant.blob=b; },'image/png');
 }
 function imprimerRecu(){
   if(!recuCourant)return;
@@ -1374,10 +1547,61 @@ function imprimerRecu(){
   w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Reçu '+recuCourant.num+'</title></head><body style="margin:12px">'+document.getElementById('recu-body').innerHTML+'</body></html>');
   w.document.close();w.focus();setTimeout(()=>{w.print();},300);
 }
-function partagerRecu(){
-  if(!recuCourant)return;
-  if(navigator.share){navigator.share({title:'Reçu '+recuCourant.num,text:recuCourant.texte}).catch(()=>{});}
-  else window.open('https://wa.me/?text='+encodeURIComponent(recuCourant.texte),'_blank');
+function dessinerRecu(r){
+  const W=640,P=36,F='Arial, Helvetica, sans-serif',SC=2;
+  const H=P+40+22+22+3*32+22+34+r.lignes.length*58+22+56+54+P;
+  const c=document.createElement('canvas'); c.width=W*SC; c.height=H*SC;
+  const g=c.getContext('2d'); g.scale(SC,SC);
+  g.fillStyle='#ffffff'; g.fillRect(0,0,W,H);
+  const T=(txt,x,y,font,color,align)=>{ g.font=font; g.fillStyle=color; g.textAlign=align||'left'; g.fillText(txt,x,y); };
+  const ajuste=(txt,font,maxW)=>{ g.font=font; let t=String(txt); while(t.length>1&&g.measureText(t).width>maxW) t=t.slice(0,-1); return t.length<String(txt).length?t.trimEnd()+'…':t; };
+  const trait=(y)=>{ g.strokeStyle='#dddddd'; g.lineWidth=1; g.beginPath(); g.moveTo(P,y); g.lineTo(W-P,y); g.stroke(); };
+  let y=P+28;
+  T(ajuste(r.nom,'bold 30px '+F,W-2*P),P,y,'bold 30px '+F,'#111');
+  y+=24; T('REÇU DE VENTE',P,y,'12px '+F,'#777');
+  y+=20; trait(y); y+=32;
+  [['N° Reçu',r.num],['Date',r.date],['Vendeur',r.vendeur]].forEach(([k,v])=>{ T(k,P,y,'16px '+F,'#666'); T(ajuste(v,'bold 16px '+F,W-2*P-120),W-P,y,'bold 16px '+F,'#111','right'); y+=32; });
+  y-=8; trait(y); y+=30;
+  T('DÉTAIL DES PRODUITS',P,y,'bold 13px '+F,'#111'); y+=30;
+  r.lignes.forEach(l=>{
+    T(ajuste(l.nom,'bold 16px '+F,W-2*P),P,y,'bold 16px '+F,'#111');
+    y+=24; T(l.qte+' × '+fcfa(l.pu)+' = '+fcfa(l.tot),W-P,y,'15px '+F,'#444','right'); y+=34;
+  });
+  trait(y-8); y+=28;
+  T('TOTAL',P,y,'bold 22px '+F,'#111'); T(fcfa(r.total),W-P,y,'bold 22px '+F,'#111','right');
+  y+=44; T('Merci pour votre confiance 🙏',W/2,y,'14px '+F,'#777','center');
+  return c;
+}
+async function blobRecu(){
+  if(!recuCourant) return null;
+  if(recuCourant.blob) return recuCourant.blob;
+  return await new Promise(res=>dessinerRecu(recuCourant).toBlob(res,'image/png'));
+}
+function telechargerRecuBlob(blob){
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download='recu-'+recuCourant.num+'.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+async function telechargerRecu(){
+  const blob=await blobRecu(); if(!blob) return;
+  telechargerRecuBlob(blob); showToast('✓ Image du reçu enregistrée');
+}
+async function partagerRecu(){
+  const blob=await blobRecu(); if(!blob) return;
+  const file=new File([blob],'recu-'+recuCourant.num+'.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],title:'Reçu '+recuCourant.num}); return; }
+    catch(e){ if(e&&e.name==='AbortError') return; }
+  }
+  // Ordinateur : on copie l'image pour la coller directement dans WhatsApp Web (Ctrl+V)
+  try{
+    if(navigator.clipboard&&window.ClipboardItem){
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+      showToast('✓ Image copiée : colle-la dans WhatsApp (Ctrl+V)'); return;
+    }
+  }catch(e){}
+  telechargerRecuBlob(blob); showToast('✓ Image enregistrée : envoie-la depuis tes fichiers');
 }
 
 // ===== DASHBOARD =====
@@ -1613,51 +1837,6 @@ let ardData={clients:[]};
 let ardQuery='';
 let ardCurrentMode='new';
 
-async function ardLoad(){
-  if(isGuest){
-    const cached = localStorage.getItem('gestocom_ardoise_cache_guest');
-    if(cached){ try{ ardData = JSON.parse(cached); }catch(e){} }
-    return;
-  }
-  const uid = await getUserId();
-  if(!uid) return;
-  const col = currentBoutiqueId ? 'boutique_id' : 'user_id';
-  const val = currentBoutiqueId || uid;
-  try{
-    const [{data:clients,error:e1},{data:transactions,error:e2}] = await Promise.all([
-      sb.from('clients_ardoise').select('*').eq(col,val),
-      sb.from('transactions_ardoise').select('*').eq(col,val)
-    ]);
-    if(e1||e2) throw new Error('supabase fetch failed');
-    ardData.clients=(clients||[]).map(c=>({id:c.id,nom:c.nom,tel:c.tel,transactions:(transactions||[]).filter(t=>t.client_id===c.id).map(t=>({id:t.id,type:t.type,montant:t.montant,produit:t.produit||'',date:t.date,dateEcheance:t.date_echeance||''}))}));
-    localStorage.setItem('gestocom_ardoise_cache_'+val, JSON.stringify(ardData));
-  }catch(e){
-    const cached = localStorage.getItem('gestocom_ardoise_cache_'+val);
-    if(cached){ try{ ardData = JSON.parse(cached); }catch(e2){} }
-  }
-}
-async function ardSaveData(){
-  if(isGuest){
-    localStorage.setItem('gestocom_ardoise_cache_guest', JSON.stringify(ardData));
-    return;
-  }
-  const uid = await getUserId();
-  if(!uid) return;
-  const col = currentBoutiqueId ? 'boutique_id' : 'user_id';
-  const val = currentBoutiqueId || uid;
-  localStorage.setItem('gestocom_ardoise_cache_'+val, JSON.stringify(ardData));
-  try{
-    await sb.from('transactions_ardoise').delete().eq(col, val);
-    await sb.from('clients_ardoise').delete().eq(col, val);
-    if(ardData.clients.length){
-      await sb.from('clients_ardoise').insert(ardData.clients.map(c=>({id:String(c.id),user_id:uid,boutique_id:currentBoutiqueId,nom:c.nom,tel:c.tel})));
-      const allTx=ardData.clients.flatMap(c=>(c.transactions||[]).map(t=>({id:String(t.id),user_id:uid,boutique_id:currentBoutiqueId,client_id:String(c.id),type:t.type,montant:t.montant,produit:t.produit||null,date:t.date,date_echeance:t.dateEcheance||null})));
-      if(allTx.length) await sb.from('transactions_ardoise').insert(allTx);
-    }
-  }catch(e){
-    // Hors-ligne : reste en cache local, sera synchronise au prochain succes
-  }
-}
 function ardUid(){return Math.random().toString(36).slice(2,10);}
 function ardFmtFCFA(n){return new Intl.NumberFormat('fr-FR').format(Math.round(n))+' F';}
 function ardTodayISO(){return new Date().toISOString().slice(0,10);}
