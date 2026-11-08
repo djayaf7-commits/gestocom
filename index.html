@@ -248,6 +248,16 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
   .stat-value{font-size:17px;}
 }
 
+.pb{display:flex;flex-direction:column;gap:10px;padding:14px 16px}
+.pb-chips{display:flex;gap:6px;flex-wrap:wrap}
+.pb-chip{background:var(--bg3);border:1px solid var(--border);color:var(--muted2);border-radius:20px;padding:7px 14px;font-size:12px;font-family:Epilogue;cursor:pointer}
+.pb-chip.on{background:var(--gold);border-color:var(--gold);color:#000;font-weight:600}
+.pb-nav{display:flex;align-items:center;gap:8px}
+.pb-arrow{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;width:38px;height:36px;font-size:18px;cursor:pointer;flex:0 0 auto}
+.pb-arrow:disabled{opacity:.3;cursor:default}
+.pb-in{flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:Epilogue;min-width:0}
+.pb-lab{font-size:12px;color:var(--muted)}
+.pb-resume{font-size:12px;color:var(--gold2)}
 </style>
 </head>
 <body>
@@ -317,21 +327,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 
     <!-- DASHBOARD -->
     <div class="section active" id="sec-dashboard">
-      <div class="card" style="margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 20px">
-          <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Période</span>
-          <select class="periode-select" onchange="changerPeriode(this.value)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;font-family:Epilogue">
-            <option value="mois">Ce mois</option>
-            <option value="tout">Tout</option>
-            <option value="perso">Personnalisé</option>
-          </select>
-          <span class="periode-perso" style="display:none;align-items:center;gap:8px">
-            <input type="date" id="periode-debut" onchange="appliquerPeriodePerso()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px">
-            <span style="color:var(--muted);font-size:11px">à</span>
-            <input type="date" id="periode-fin" onchange="appliquerPeriodePerso()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px">
-          </span>
-        </div>
-      </div>
+      <div class="card periode-bar" style="margin-bottom:16px"></div>
       <div class="stats-grid">
         <div class="stat-card g"><div class="stat-glow"></div><div class="stat-label">Chiffre d'affaires</div><div class="stat-value" id="d-ca">0</div><div class="stat-sub">FCFA — période sélectionnée</div></div>
         <div class="stat-card gr"><div class="stat-glow"></div><div class="stat-label">Bénéfice net réalisé</div><div class="stat-value" id="d-ben">0</div><div class="stat-sub">FCFA — après achat</div></div>
@@ -467,21 +463,7 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 
     <!-- BILAN -->
     <div class="section" id="sec-bilan">
-      <div class="card" style="margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 20px">
-          <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Période</span>
-          <select class="periode-select" onchange="changerPeriode(this.value)" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;font-family:Epilogue">
-            <option value="mois">Ce mois</option>
-            <option value="tout">Tout</option>
-            <option value="perso">Personnalisé</option>
-          </select>
-          <span class="periode-perso" style="display:none;align-items:center;gap:8px">
-            <input type="date" id="periode-debut" onchange="appliquerPeriodePerso()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px">
-            <span style="color:var(--muted);font-size:11px">à</span>
-            <input type="date" id="periode-fin" onchange="appliquerPeriodePerso()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px">
-          </span>
-        </div>
-      </div>
+      <div class="card periode-bar" style="margin-bottom:16px"></div>
       <div class="stats-grid">
         <div class="stat-card g"><div class="stat-glow"></div><div class="stat-label">CA total</div><div class="stat-value" id="b-ca">0</div><div class="stat-sub">FCFA</div></div>
         <div class="stat-card gr"><div class="stat-glow"></div><div class="stat-label">Bénéfice total</div><div class="stat-value" id="b-ben">0</div><div class="stat-sub">FCFA</div></div>
@@ -1733,33 +1715,117 @@ function solderCommande(id){
 }
 function supprimerCommande(id){confirm2('Supprimer cette précommande ?','Action irréversible.',async()=>{DB.commandes=DB.commandes.filter(x=>x.id!==id);await saveDB();renderCommandes();});}
 
-let periodeMode='mois', periodeDebut='', periodeFin='';
 function ventesVisibles(){
   if(currentRole!=='vendeur') return DB.ventes;
   return DB.ventes.filter(v=>v.vendeurId===currentVendeurId).map(v=>({...v,coutAchat:(v.prixCession||0)*v.qte,benefice:v.ca-(v.prixCession||0)*v.qte}));
 }
+// ===== PÉRIODE : un seul sélecteur partagé par l'accueil et le bilan =====
+const MOIS_FR=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const MOIS_COURT=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const JOURS_FR=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const p2=n=>String(n).padStart(2,'0');
+function auj(){const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+function dUTC(s){const [y,m,d]=s.split('-').map(Number);return new Date(Date.UTC(y,m-1,d));}
+function isoD(d){return d.getUTCFullYear()+'-'+p2(d.getUTCMonth()+1)+'-'+p2(d.getUTCDate());}
+function plusJours(s,n){const d=dUTC(s);d.setUTCDate(d.getUTCDate()+n);return isoD(d);}
+function lundiDe(s){const d=dUTC(s);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return isoD(d);}
+function finDuMois(s){const [y,m]=s.split('-').map(Number);return isoD(new Date(Date.UTC(y,m,0)));}
+function dateCourte(s,avecAnnee){const d=dUTC(s);return d.getUTCDate()+' '+MOIS_COURT[d.getUTCMonth()]+(avecAnnee?' '+d.getUTCFullYear():'');}
+function dateLongue(s){const d=dUTC(s);return JOURS_FR[d.getUTCDay()]+' '+d.getUTCDate()+' '+MOIS_FR[d.getUTCMonth()]+' '+d.getUTCFullYear();}
+function libMois(k){const [y,m]=k.split('-').map(Number);const n=MOIS_FR[m-1];return n.charAt(0).toUpperCase()+n.slice(1)+' '+y;}
+function libSemaine(lundi){const a=lundi,b=plusJours(lundi,6),da=dUTC(a),db=dUTC(b);
+  return da.getUTCMonth()===db.getUTCMonth()?da.getUTCDate()+' – '+db.getUTCDate()+' '+MOIS_COURT[db.getUTCMonth()]+' '+db.getUTCFullYear():dateCourte(a)+' – '+dateCourte(b,true);}
+
+let periode={mode:'mois',ref:auj(),debut:'',fin:''}, _barSig='';
+function premiereActivite(){ // premier jour d'activité = date de la toute première vente
+  let m=null;
+  ventesVisibles().forEach(v=>{const d=(v.date||'').slice(0,10);if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&(!m||d<m))m=d;});
+  const t=auj();return(m&&m<t)?m:t;
+}
+function plageDe(mode,ref){
+  if(mode==='jour')return{debut:ref,fin:ref};
+  if(mode==='semaine'){const d=lundiDe(ref);return{debut:d,fin:plusJours(d,6)};}
+  return{debut:ref.slice(0,7)+'-01',fin:finDuMois(ref)}; // mois
+}
+function plagePeriode(){
+  const p=periode;
+  if(p.mode==='tout')return{debut:'0000-01-01',fin:'9999-12-31'};
+  if(p.mode==='perso')return{debut:p.debut,fin:p.fin};
+  return plageDe(p.mode,p.ref);
+}
 function getVentesPeriode(){
   const base=ventesVisibles();
-  if(periodeMode==='tout') return base;
-  if(periodeMode==='perso'){
-    if(!periodeDebut||!periodeFin) return base;
-    return base.filter(v=>v.date>=periodeDebut&&v.date<=periodeFin);
+  if(periode.mode==='tout')return base;
+  const{debut,fin}=plagePeriode();
+  return base.filter(v=>{const d=(v.date||'').slice(0,10);return d>=debut&&d<=fin;});
+}
+function refVoisine(sens){ // période précédente (-1) ou suivante (+1), ou null si hors limites
+  const p=periode;let r;
+  if(p.mode==='jour')r=plusJours(p.ref,sens);
+  else if(p.mode==='semaine')r=plusJours(lundiDe(p.ref),7*sens);
+  else if(p.mode==='mois'){const[y,m]=p.ref.split('-').map(Number);r=isoD(new Date(Date.UTC(y,m-1+sens,1)));}
+  else return null;
+  const pl=plageDe(p.mode,r);
+  if(pl.debut>auj()||pl.fin<premiereActivite())return null;
+  return r;
+}
+function optionsMois(){
+  const prem=premiereActivite().slice(0,7);let[y,m]=auj().slice(0,7).split('-').map(Number);const out=[];
+  for(let i=0;i<1200;i++){const k=y+'-'+p2(m);out.push(k);if(k<=prem)break;m--;if(m===0){m=12;y--;}}
+  const cur=periode.ref.slice(0,7);if(periode.mode==='mois'&&!out.includes(cur)){out.push(cur);out.sort().reverse();}
+  return out;
+}
+function optionsSemaines(){
+  const premL=lundiDe(premiereActivite());let l=lundiDe(auj());const out=[];
+  for(let i=0;i<2000;i++){out.push(l);if(l<=premL)break;l=plusJours(l,-7);}
+  const cur=lundiDe(periode.ref);if(periode.mode==='semaine'&&!out.includes(cur)){out.push(cur);out.sort().reverse();}
+  return out;
+}
+function pb(action,val){ // toutes les actions du sélecteur : l'état change puis tout se rafraîchit immédiatement
+  const p=periode;
+  if(action==='mode'){p.mode=val;p.ref=auj();if(val==='perso'&&(!p.debut||!p.fin)){p.debut=auj().slice(0,8)+'01';p.fin=auj();}}
+  else if(action==='prev'||action==='next'){const r=refVoisine(action==='prev'?-1:1);if(!r)return;p.ref=r;}
+  else if(action==='mois'){if(!val)return;p.ref=val+'-01';}
+  else if(action==='semaine'||action==='jour'){if(!val)return;p.ref=val;}
+  else if(action==='debut'){if(!val)return;p.debut=val;if(p.fin<val)p.fin=val;}
+  else if(action==='fin'){if(!val)return;p.fin=val;if(p.debut>val)p.debut=val;}
+  renderDashboard();renderBilan();
+}
+function barreHTML(){
+  const p=periode,prem=premiereActivite(),t=auj();
+  const modes=[['jour','Jour'],['semaine','Semaine'],['mois','Mois'],['tout','Tout'],['perso','Dates']];
+  let h='<div class="pb"><div class="pb-chips">'+modes.map(([k,l])=>'<button class="pb-chip'+(p.mode===k?' on':'')+'" onclick="pb(\'mode\',\''+k+'\')">'+l+'</button>').join('')+'</div>';
+  if(p.mode==='jour'||p.mode==='semaine'||p.mode==='mois'){
+    let ctrl='';
+    if(p.mode==='jour')ctrl='<input type="date" class="pb-in" min="'+prem+'" max="'+t+'" value="'+p.ref+'" onchange="pb(\'jour\',this.value)">';
+    else if(p.mode==='semaine'){const cur=lundiDe(p.ref),th=lundiDe(t);
+      ctrl='<select class="pb-in" onchange="pb(\'semaine\',this.value)">'+optionsSemaines().map(l=>'<option value="'+l+'"'+(l===cur?' selected':'')+'>'+(l===th?'Cette semaine · ':'')+libSemaine(l)+'</option>').join('')+'</select>';}
+    else{const cur=p.ref.slice(0,7),tm=t.slice(0,7);
+      ctrl='<select class="pb-in" onchange="pb(\'mois\',this.value)">'+optionsMois().map(k=>'<option value="'+k+'"'+(k===cur?' selected':'')+'>'+libMois(k)+(k===tm?' (ce mois)':'')+'</option>').join('')+'</select>';}
+    h+='<div class="pb-nav"><button class="pb-arrow" '+(refVoisine(-1)?'':'disabled ')+'onclick="pb(\'prev\')" aria-label="Précédent">‹</button>'+ctrl+'<button class="pb-arrow" '+(refVoisine(1)?'':'disabled ')+'onclick="pb(\'next\')" aria-label="Suivant">›</button></div>';
   }
-  const ym=new Date().toISOString().slice(0,7);
-  return base.filter(v=>v.date&&v.date.slice(0,7)===ym);
+  if(p.mode==='perso')h+='<div class="pb-nav"><span class="pb-lab">Du</span><input type="date" class="pb-in" max="'+t+'" value="'+p.debut+'" onchange="pb(\'debut\',this.value)"><span class="pb-lab">au</span><input type="date" class="pb-in" max="'+t+'" value="'+p.fin+'" onchange="pb(\'fin\',this.value)"></div>';
+  return h+'<div class="pb-resume"></div></div>';
 }
-function changerPeriode(mode){
-  periodeMode=mode;
-  document.querySelectorAll('.periode-select').forEach(s=>s.value=mode);
-  document.querySelectorAll('.periode-perso').forEach(el=>el.style.display=mode==='perso'?'flex':'none');
-  renderDashboard();renderBilan();
+function resumePeriode(){
+  const p=periode,t=auj(),{debut,fin}=plagePeriode(),n=getVentesPeriode().length;let txt;
+  if(p.mode==='tout')txt='Depuis le début ('+dateCourte(premiereActivite(),true)+')';
+  else if(p.mode==='jour')txt=(p.ref===t?"Aujourd'hui · ":p.ref===plusJours(t,-1)?'Hier · ':'')+dateLongue(p.ref);
+  else if(p.mode==='semaine')txt='Du '+dateCourte(debut)+' au '+dateCourte(fin,true)+(debut<=t&&t<=fin?' · cette semaine':'');
+  else if(p.mode==='mois')txt=libMois(p.ref.slice(0,7))+(p.ref.slice(0,7)===t.slice(0,7)?' · ce mois':'');
+  else txt='Du '+dateCourte(debut,true)+' au '+dateCourte(fin,true);
+  return txt+' · '+n+' vente'+(n>1?'s':'');
 }
-function appliquerPeriodePerso(){
-  periodeDebut=document.getElementById('periode-debut').value;
-  periodeFin=document.getElementById('periode-fin').value;
-  renderDashboard();renderBilan();
+function renderPeriodeBar(){
+  const bars=[].slice.call(document.querySelectorAll('.periode-bar'));
+  const sig=[periode.mode,periode.ref,periode.debut,periode.fin,premiereActivite(),auj()].join('|');
+  if(sig!==_barSig||bars.some(b=>!b.firstChild)){_barSig=sig;const h=barreHTML();bars.forEach(b=>{b.innerHTML=h;});}
+  const r=resumePeriode();
+  document.querySelectorAll('.pb-resume').forEach(e=>{e.textContent=r;});
 }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ try{renderDashboard();renderBilan();}catch(e){} } });
 function renderDashboard(){
+  renderPeriodeBar();
   const ventesP=getVentesPeriode();
   const ca=ventesP.reduce((s,v)=>s+v.ca,0),ben=ventesP.reduce((s,v)=>s+v.benefice,0),cout=ventesP.reduce((s,v)=>s+v.coutAchat,0);
   document.getElementById('d-ca').textContent=Math.round(ca).toLocaleString('fr-FR');
@@ -1782,6 +1848,7 @@ function renderDashboard(){
 
 // ===== BILAN =====
 function renderBilan(){
+  renderPeriodeBar();
   const ventesP=getVentesPeriode();
   const ca=ventesP.reduce((s,v)=>s+v.ca,0),ben=ventesP.reduce((s,v)=>s+v.benefice,0),cout=ventesP.reduce((s,v)=>s+v.coutAchat,0);
   document.getElementById('b-ca').textContent=Math.round(ca).toLocaleString('fr-FR');
