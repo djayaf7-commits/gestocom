@@ -269,6 +269,9 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 .pb-item:hover{background:var(--bg3)}
 .pb-in{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;font-family:Epilogue;min-width:0}
 .pb-lab{font-size:12px;color:var(--muted)}
+html{scrollbar-gutter:stable}
+html.fige,html.fige body{overflow:hidden}
+.overlay,.modal,.pb-body,.ardoise-root .modal-overlay,.ardoise-root .modal-sheet{overscroll-behavior:contain}
 </style>
 </head>
 <body>
@@ -1208,6 +1211,18 @@ function toggleSidebar(force){
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function openModal(id){document.getElementById(id).classList.add('open');}
+
+// ===== Fenêtre ouverte = page derrière en pause (le défilement ne « traverse » plus la fenêtre) =====
+function majFigeFond(){
+  const ouvert=document.querySelector('.overlay.open, .modal-overlay, .sidebar-scrim.open');
+  document.documentElement.classList.toggle('fige',!!ouvert);
+}
+new MutationObserver(majFigeFond).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+document.addEventListener('touchmove',e=>{ // téléphone : on bloque le glissement sur le fond sombre
+  if(!document.documentElement.classList.contains('fige'))return;
+  if(!e.target.closest('.modal, .modal-sheet, .pb-body, .sidebar'))e.preventDefault();
+},{passive:false});
+majFigeFond();
 
 // ===== PRODUITS =====
 function precommandesPourProduit(pid){
