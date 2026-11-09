@@ -14,6 +14,3 @@ Objectif : l'écran reste stable. Ajouter une fonctionnalité ne doit JAMAIS fai
    qui agrandit une barre.
 6. **Ordre de l'accueil figé** : barre de période → cartes de chiffres → alertes / top vendeurs → dernières ventes.
    Toute nouvelle carte se place en bas ou dans une fenêtre, pas entre ces blocs.
-7. **Fenêtre ouverte = page derrière en pause** : le défilement ne doit jamais « traverser » une fenêtre. C'est géré globalement
-   (`majFigeFond`, classe `html.fige`, `overscroll-behavior:contain`) : toute nouvelle fenêtre (`.overlay.open`, `.modal-overlay`)
-   en profite automatiquement, ne pas contourner.
