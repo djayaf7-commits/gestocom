@@ -14,3 +14,6 @@ Objectif : l'écran reste stable. Ajouter une fonctionnalité ne doit JAMAIS fai
    qui agrandit une barre.
 6. **Ordre de l'accueil figé** : barre de période → cartes de chiffres → alertes / top vendeurs → dernières ventes.
    Toute nouvelle carte se place en bas ou dans une fenêtre, pas entre ces blocs.
+8. **Graphiques (page Analyses)** : chaque graphique vit dans une boîte de hauteur fixe (`.an-box`, `.an-box-s`) ; changer de période ou de
+   mesure ne modifie jamais la position des cartes. Une seule colonne sur téléphone (`.an-2`). Un point de période encore en cours
+   se dessine en pointillés. Pas de bibliothèque externe : tout est dessiné en SVG/CSS pour fonctionner hors-ligne.
