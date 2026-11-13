@@ -21,3 +21,9 @@ Objectif : l'écran reste stable. Ajouter une fonctionnalité ne doit JAMAIS fai
    rouge = alerte (stock qui dort). Dégradés pleins (jamais de teintes pâles à 50 % d'opacité), courbe lisse, médailles 1-2-3,
    barres empilées coût + bénéfice. Chaque élément réagit au toucher (bulle de détail, bouton qui s'enfonce, sélecteur glissant).
    Les dates sont toujours précises (« vendredi 16 oct. », jamais seulement « vendredi » sur plusieurs semaines).
+10. **Couleurs (règle d'or de cohérence)** : on n'utilise JAMAIS une teinte qui n'existe pas dans le thème de l'app (`--gold`, `--green`,
+    `--blue`, `--red`, gris `--muted*`). Elles sont lues dans le CSS (`majPal()`), jamais écrites en dur. Sens fixe partout :
+    or = chiffre d'affaires / accent, vert = bénéfice et hausse, bleu = volumes (ventes, quantités), rouge = alerte et baisse,
+    gris = tout le reste (coûts, séries secondaires). Aplats mats : pas de halo, pas de néon, pas de dégradé voyant.
+    Les graphiques réutilisent les cartes standard de l'app (`.card`, `.card-header`, Syne, mêmes bordures) et le même sélecteur
+    (pastille or) que la fenêtre de période. Pas d'emoji multicolores dans les pages : icônes de trait monochromes.
