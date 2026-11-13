@@ -17,3 +17,7 @@ Objectif : l'écran reste stable. Ajouter une fonctionnalité ne doit JAMAIS fai
 8. **Graphiques (page Analyses)** : chaque graphique vit dans une boîte de hauteur fixe (`.an-box`, `.an-box-s`) ; changer de période ou de
    mesure ne modifie jamais la position des cartes. Une seule colonne sur téléphone (`.an-2`). Un point de période encore en cours
    se dessine en pointillés. Pas de bibliothèque externe : tout est dessiné en SVG/CSS pour fonctionner hors-ligne.
+9. **Style des graphiques (Analyses v2)** : couleurs à sens fixe — or = chiffre d'affaires / coût, vert = bénéfice, bleu = quantités et ventes,
+   rouge = alerte (stock qui dort). Dégradés pleins (jamais de teintes pâles à 50 % d'opacité), courbe lisse, médailles 1-2-3,
+   barres empilées coût + bénéfice. Chaque élément réagit au toucher (bulle de détail, bouton qui s'enfonce, sélecteur glissant).
+   Les dates sont toujours précises (« vendredi 16 oct. », jamais seulement « vendredi » sur plusieurs semaines).
