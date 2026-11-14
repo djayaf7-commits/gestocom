@@ -269,88 +269,74 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
 .pb-item:hover{background:var(--bg3)}
 .pb-in{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;font-family:Epilogue;min-width:0}
 .pb-lab{font-size:12px;color:var(--muted)}
-.an-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:nowrap}
-.an-ttl{display:flex;align-items:center;gap:12px;min-width:0}
-.an-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:var(--gold);background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.22)}
-.an-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
-.an-s{font-size:11px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:14px;margin-top:2px}
-.an-s b{color:var(--text);font-weight:600}
-.an-hint{color:var(--muted)}
-.an-sub{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px 0;min-height:50px}
-.an-legrow{display:flex;align-items:center;gap:16px;padding:10px 20px 0;min-height:30px;font-size:11px;color:var(--muted2);flex-wrap:nowrap;white-space:nowrap}
-.an-legrow span{display:inline-flex;align-items:center;gap:6px}
-.lg{display:inline-block;width:8px;height:8px;border-radius:2px;margin:0 5px 0 10px;vertical-align:baseline}
+.an-card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 38%),var(--bg2);border:1px solid rgba(255,255,255,.07);border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.06);overflow:hidden}
+.an-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 8px;flex-wrap:nowrap}
+.an-ttl{display:flex;align-items:center;gap:10px;min-width:0}
+.an-ico{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto;background:rgba(255,255,255,.07);background:color-mix(in srgb,var(--c) 17%,transparent);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 38%,transparent)}
+.an-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;white-space:nowrap}
+.an-s{font-size:11px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:14px;margin-top:1px}
+.lg{display:inline-block;width:8px;height:8px;border-radius:3px;margin:0 4px 0 8px;vertical-align:baseline}
 .lg:first-child{margin-left:0}
-.lgl{display:inline-block;width:14px;height:2px;border-radius:2px}
 .an-box{height:250px;position:relative;overflow:hidden}
-.an-box-l{height:318px;position:relative;overflow-y:auto;padding:6px 20px 14px}
-.an-box-s{height:236px;overflow-y:auto;padding:6px 20px 10px;position:relative}
-#an-ins{height:300px}
-@media(min-width:760px){#an-ins{height:262px}}
+.an-box-l{height:318px;position:relative;overflow-y:auto;padding:4px 18px 14px}
+.an-box-s{height:236px;overflow-y:auto;padding:10px 20px;position:relative}
+#an-ins{height:292px}
+@media(min-width:760px){#an-ins{height:250px}}
 @media(max-width:760px){.an-2{grid-template-columns:1fr !important}}
 .an-empty{height:100%;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:13px;padding:0 16px;line-height:1.5}
-.an-seg{position:relative;display:flex;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:3px;flex:0 0 auto}
-.an-seg button{position:relative;z-index:1;background:none;border:none;color:var(--muted2);border-radius:7px;padding:6px 12px;font-size:12px;font-family:Epilogue;cursor:pointer;white-space:nowrap;transition:color .2s,transform .12s}
-.an-seg button:active{transform:scale(.94)}
-.an-seg button.on{color:#000;font-weight:600}
-.an-thumb{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:7px;background:var(--gold);transition:transform .3s cubic-bezier(.3,.9,.3,1),width .3s cubic-bezier(.3,.9,.3,1)}
-.an-line{stroke-dasharray:1;stroke-dashoffset:1;animation:an-draw .9s cubic-bezier(.4,0,.2,1) forwards}
+.an-seg{position:relative;display:flex;gap:2px;background:rgba(255,255,255,.07);border-radius:11px;padding:3px;flex:0 0 auto}
+.an-seg button{position:relative;z-index:1;background:none;border:none;color:var(--muted2);border-radius:8px;padding:6px 11px;font-size:12px;font-family:Epilogue;cursor:pointer;white-space:nowrap;transition:color .2s,transform .12s}
+.an-seg button:active{transform:scale(.93)}
+.an-seg button.on{color:#150f00;font-weight:700}
+.an-thumb{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:8px;background:linear-gradient(180deg,#FFD07A,#F5A623);box-shadow:0 3px 12px rgba(245,166,35,.38);transition:transform .32s cubic-bezier(.3,.9,.3,1),width .32s cubic-bezier(.3,.9,.3,1),background .3s,box-shadow .3s}
+.an-seg[data-c="g"] .an-thumb{background:linear-gradient(180deg,#5BE3A8,#2ECC8A);box-shadow:0 3px 12px rgba(46,204,138,.38)}
+.an-seg[data-c="b"] .an-thumb{background:linear-gradient(180deg,#8FB0FF,#5B8CFF);box-shadow:0 3px 12px rgba(91,140,255,.4)}
+.an-line{stroke-dasharray:1;stroke-dashoffset:1;animation:an-draw 1s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes an-draw{to{stroke-dashoffset:0}}
-.an-fade{opacity:0;animation:an-fade .7s .2s ease forwards}
+.an-fade{opacity:0;animation:an-fade .8s .25s ease forwards}
 @keyframes an-fade{to{opacity:1}}
-@media(prefers-reduced-motion:reduce){.an-line,.an-fade{animation:none;stroke-dashoffset:0;opacity:1}.an-bw,.an-cb i,.an-thumb{transition:none !important}}
-.an-chips{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:12px 20px 0;min-height:48px}
-.an-chips::-webkit-scrollbar{display:none}
-.an-chip{display:inline-flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:6px 12px;font-size:12px;font-family:Epilogue;cursor:pointer;white-space:nowrap;flex:0 0 auto;transition:opacity .2s,transform .12s}
-.an-chip:active{transform:scale(.95)}
-.an-chip i{width:8px;height:8px;border-radius:50%;display:block}
-.an-chip em{font-style:normal;color:var(--muted2);font-size:11px}
-.an-chip.off{opacity:.38}
-.an-rk{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);transition:transform .15s}
+.an-pulse{transform-box:fill-box;transform-origin:center;animation:an-pulse 2.2s ease-out infinite}
+@keyframes an-pulse{0%{transform:scale(.7);opacity:.9}100%{transform:scale(2.1);opacity:0}}
+@media(prefers-reduced-motion:reduce){.an-line,.an-fade{animation:none;stroke-dashoffset:0;opacity:1}.an-pulse{animation:none}.an-bw,.an-cb i,.an-thumb{transition:none !important}}
+.an-rk{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);transition:transform .15s}
 .an-rk:last-child{border-bottom:none}
 .an-rk:active{transform:scale(.985)}
-.an-rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:0 0 auto;background:var(--bg3);border:1px solid var(--border);color:var(--muted2)}
-.an-rank.r1{background:var(--gold);border-color:var(--gold);color:#000}
+.an-rank{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:0 0 auto;background:rgba(255,255,255,.08);color:var(--muted2)}
+.an-rank.r1{background:linear-gradient(135deg,#FFD07A,#F5A623);color:#2a1a00;box-shadow:0 0 16px rgba(245,166,35,.5)}
+.an-rank.r2{background:linear-gradient(135deg,#EEF1F8,#A9B2C6);color:#1b2030}
+.an-rank.r3{background:linear-gradient(135deg,#EBAE82,#B96B3A);color:#2a1305}
 .an-rk-main{flex:1;min-width:0}
 .an-rk-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .an-nom{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.an-big{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
-.an-bar,.an-dz-m{height:8px;border-radius:5px;background:var(--bg3);margin:8px 0 6px;overflow:hidden}
-.an-bw{height:100%;display:flex;border-radius:5px;overflow:hidden;width:0;transition:width .8s cubic-bezier(.2,.8,.2,1);transition-delay:var(--d,0ms)}
+.an-big{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;white-space:nowrap}
+.an-bar,.an-dz-m{height:9px;border-radius:6px;background:rgba(255,255,255,.07);margin:7px 0 6px;overflow:hidden}
+.an-bw{height:100%;display:flex;border-radius:6px;overflow:hidden;width:0;transition:width .85s cubic-bezier(.2,.8,.2,1);transition-delay:var(--d,0ms)}
 .an-bw i{display:block;height:100%}
-.an-bc{background:#4A4F5E}
-.an-bb{background:var(--green)}
-.an-bq{background:var(--blue)}
-.an-bs{background:#4A4F5E}
-.an-bs.s-bas{background:var(--red)}
-.an-bs.s-ok{background:var(--muted2)}
-.an-big.s-bas{color:var(--red)}
+.an-bc{background:linear-gradient(90deg,#C77D0A,#F5A623)}
+.an-bb{background:linear-gradient(90deg,#27B777,#46E0A0);box-shadow:0 0 10px rgba(46,204,138,.55)}
+.an-bq{background:linear-gradient(90deg,#4768D9,#7FA3FF)}
+.an-bd{background:linear-gradient(90deg,#F5A623,#FF5C5C)}
 .an-rk-sub{font-size:11px;color:var(--muted2);display:flex;justify-content:space-between;gap:10px;white-space:nowrap}
 .an-rk-sub b{color:var(--green);font-weight:600}
-.an-dz{padding:10px 0;border-bottom:1px solid var(--border)}
+.an-dz{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .an-dz:last-child{border-bottom:none}
 .an-dz-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .an-wk{display:flex;gap:8px;height:190px;align-items:stretch;padding-top:6px}
 .an-col{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
 .an-col:active{transform:scale(.94)}
-.an-cv{font-size:10px;color:var(--muted2);height:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.an-cv{font-size:10px;color:var(--muted2);height:14px;white-space:nowrap}
 .an-cb{flex:1;width:100%;display:flex;align-items:flex-end}
-.an-cb i{display:block;width:100%;height:0;border-radius:6px 6px 3px 3px;background:#343846;transition:height .8s cubic-bezier(.2,.8,.2,1)}
-.an-col.best .an-cb i{background:var(--gold)}
-.an-col.sel .an-cb i{box-shadow:0 0 0 1.5px var(--text)}
+.an-cb i{display:block;width:100%;height:0;border-radius:9px 9px 4px 4px;background:linear-gradient(180deg,#7B98EE,#2E3A66);transition:height .8s cubic-bezier(.2,.8,.2,1),filter .2s,box-shadow .2s}
+.an-col.best .an-cb i{background:linear-gradient(180deg,#FFD07A,#F5A623 55%,#C77D0A);box-shadow:0 0 20px rgba(245,166,35,.5)}
+.an-col.sel .an-cb i{filter:brightness(1.22);box-shadow:0 0 0 2px rgba(255,255,255,.4)}
 .an-cl{font-size:11px;color:var(--muted2);margin-top:7px;font-weight:600}
 .an-col.sel .an-cl{color:var(--text)}
-.an-det{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);font-size:12.5px;line-height:1.5;min-height:58px}
-.an-det span{color:var(--muted2);font-size:11.5px;display:block;margin-top:2px}
-.an-det .ok{color:var(--gold)}
-.an-ins{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.4}
+.an-det{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.055);font-size:12.5px;line-height:1.5;min-height:58px}
+.an-det span{color:var(--muted2);font-size:11.5px}
+.an-det .ok{color:var(--gold2)}
+.an-ins{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.4}
 .an-ins:last-child{border-bottom:none}
-.an-ii{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:var(--gold);background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2)}
-.an-ii.bad{color:var(--red);background:rgba(255,92,92,.08);border-color:rgba(255,92,92,.25)}
-.an-ii.up{color:var(--green);background:rgba(46,204,138,.08);border-color:rgba(46,204,138,.25)}
-.an-ii.dn{color:var(--red);background:rgba(255,92,92,.08);border-color:rgba(255,92,92,.25)}
 @media(max-width:560px){.an-hint{display:none}}
-@media(max-width:430px){.an-chip em{display:none}}
 </style>
 </head>
 <body>
@@ -559,30 +545,20 @@ input:focus,select:focus{border-color:var(--gold);}input::placeholder{color:var(
     <div class="section" id="sec-analyses">
       <div class="card periode-bar" style="margin-bottom:16px"></div>
       <div class="stats-grid" id="an-kpis"></div>
-      <div class="card"><div class="card-header"><div class="card-title">À retenir</div></div><div class="an-box-s" id="an-ins"></div></div>
-      <div class="card">
-        <div class="an-head"><div class="an-ttl"><span class="an-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5.5-5.5 4 4L21 7"/><path d="M15 7h6v6"/></svg></span><div style="min-width:0"><div class="an-t">Évolution</div><div class="an-s" id="an-grain"></div></div></div></div>
-        <div class="an-sub"><div class="an-seg" id="an-metric"><i class="an-thumb"></i><button data-k="ens" onclick="anSet('metric','ens')">Ensemble</button><button data-k="ca" onclick="anSet('metric','ca')">CA</button><button data-k="ben" onclick="anSet('metric','ben')">Bénéfice</button><button data-k="nb" onclick="anSet('metric','nb')">Ventes</button></div></div>
-        <div class="an-legrow" id="an-leg-e"></div>
+      <div class="card" style="margin-bottom:20px"><div class="card-header"><div class="card-title">À retenir</div></div><div class="an-box-s" id="an-ins"></div></div>
+      <div class="card an-card" style="margin-bottom:20px">
+        <div class="an-head"><div class="an-ttl"><span class="an-ico" style="--c:#F5A623">📈</span><div style="min-width:0"><div class="an-t">Évolution</div><div class="an-s" id="an-grain"></div></div></div>
+          <div class="an-seg" id="an-metric"><i class="an-thumb"></i><button data-k="ca" onclick="anSet('metric','ca')">CA</button><button data-k="ben" onclick="anSet('metric','ben')">Bénéfice</button><button data-k="nb" onclick="anSet('metric','nb')">Ventes</button></div></div>
         <div class="an-box" id="an-courbe"></div>
       </div>
-      <div class="card">
-        <div class="an-head"><div class="an-ttl"><span class="an-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l4.5-6 4 3 4-8 5.5 5"/></svg></span><div style="min-width:0"><div class="an-t">Évolution des vendeurs</div><div class="an-s">CA par vendeur<span class="an-hint"> · touche un nom pour l'afficher ou le masquer</span></div></div></div></div>
-        <div class="an-chips" id="an-leg-ev"></div>
-        <div class="an-box" id="an-evo-v"></div>
+      <div class="two-col an-2" style="margin-bottom:20px">
+        <div class="card an-card"><div class="an-head"><div class="an-ttl"><span class="an-ico" style="--c:#F5A623">🏆</span><div style="min-width:0"><div class="an-t">Vendeurs</div><div class="an-s" id="an-leg-v"></div></div></div></div><div class="an-box-l" id="an-vendeurs"></div></div>
+        <div class="card an-card"><div class="an-head"><div class="an-ttl"><span class="an-ico" style="--c:#2ECC8A">📦</span><div style="min-width:0"><div class="an-t">Produits</div><div class="an-s" id="an-leg-p"></div></div></div>
+          <div class="an-seg" id="an-prod"><i class="an-thumb"></i><button data-k="ca" onclick="anSet('prod','ca')">CA</button><button data-k="qte" onclick="anSet('prod','qte')">Quantité</button></div></div><div class="an-box-l" id="an-produits"></div></div>
       </div>
       <div class="two-col an-2">
-        <div class="card"><div class="an-head"><div class="an-ttl"><span class="an-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3.2 3.2 0 010 5.6M18.5 14.8c1.7.7 2.8 2.5 2.8 5.2"/></svg></span><div style="min-width:0"><div class="an-t">Vendeurs</div><div class="an-s" id="an-leg-v"></div></div></div></div><div class="an-box-l" id="an-vendeurs"></div></div>
-        <div class="card"><div class="an-head"><div class="an-ttl"><span class="an-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8L12 3.5 20.5 8v8L12 20.5 3.5 16z"/><path d="M3.5 8L12 12.5 20.5 8M12 12.5v8"/></svg></span><div style="min-width:0"><div class="an-t">Produits</div><div class="an-s" id="an-leg-p"></div></div></div><div class="an-seg" id="an-prod"><i class="an-thumb"></i><button data-k="ca" onclick="anSet('prod','ca')">CA</button><button data-k="qte" onclick="anSet('prod','qte')">Quantité</button></div></div><div class="an-box-l" id="an-produits"></div></div>
-      </div>
-      <div class="card">
-        <div class="an-head"><div class="an-ttl"><span class="an-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg></span><div style="min-width:0"><div class="an-t">Rentabilité des produits</div><div class="an-s">volume vendu × marge<span class="an-hint"> · touche une bulle (sa taille = son bénéfice)</span></div></div></div></div>
-        <div class="an-box" id="an-matrice" style="padding-top:8px"></div>
-        <div class="an-det" id="an-matrice-d" style="margin:0 20px 18px"></div>
-      </div>
-      <div class="two-col an-2">
-        <div class="card"><div class="an-head"><div class="an-ttl"><span class="an-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span><div style="min-width:0"><div class="an-t">Jours de la semaine</div><div class="an-s" id="an-jours-s"></div></div></div></div><div class="an-box-l" id="an-jours"></div></div>
-        <div class="card"><div class="an-head"><div class="an-ttl"><span class="an-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 1116 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1.2"/></svg></span><div style="min-width:0"><div class="an-t">Santé du stock</div><div class="an-s" id="an-stock-s"></div></div></div><div class="an-seg" id="an-stock"><i class="an-thumb"></i><button data-k="rythme" onclick="anSet('stock','rythme')">Rythme</button><button data-k="dort" onclick="anSet('stock','dort')">Dort</button></div></div><div class="an-box-l" id="an-stockbox"></div></div>
+        <div class="card an-card"><div class="an-head"><div class="an-ttl"><span class="an-ico" style="--c:#A78BFA">📅</span><div style="min-width:0"><div class="an-t">Jours de la semaine</div><div class="an-s" id="an-jours-s">moyenne par jour</div></div></div></div><div class="an-box-l" id="an-jours"></div></div>
+        <div class="card an-card"><div class="an-head"><div class="an-ttl"><span class="an-ico" style="--c:#FF5C5C">😴</span><div style="min-width:0"><div class="an-t">Stock qui dort</div><div class="an-s" id="an-dort-tot"></div></div></div></div><div class="an-box-l" id="an-dort"></div></div>
       </div>
     </div>
 
@@ -1979,72 +1955,37 @@ function rendrePanneauPeriode(){
     '<button class="btn btn-gold" style="width:100%;justify-content:center" onclick="pbAppliquerDates()">Appliquer</button>';
   document.getElementById('pb-panel').innerHTML=h+'</div>';
 }
-// ===== ANALYSES v3 : palette sobre à sens fixe, graphiques superposés, analyses qui font réfléchir =====
-// Règle des couleurs : UNIQUEMENT celles du thème de l'app (lues dans le CSS) + des gris neutres.
-//   or = chiffre d'affaires · vert = bénéfice · bleu = volumes (ventes, quantités) · rouge = alerte · gris = tout le reste (coûts, séries secondaires).
-// Pas de halo, pas de néon : aplats mats, traits fins.
-function tok(n,f){const v=getComputedStyle(document.documentElement).getPropertyValue(n);return(v&&v.trim())||f;}
-let PAL={ca:'#F5A623',caL:'#FFD07A',ben:'#2ECC8A',benL:'#2ECC8A',vol:'#5B8CFF',volL:'#5B8CFF',cost:'#9099AA',costL:'#9099AA',bad:'#FF5C5C',txt:'#F0EDE8'};
-function majPal(){PAL={ca:tok('--gold','#F5A623'),caL:tok('--gold2','#FFD07A'),ben:tok('--green','#2ECC8A'),benL:tok('--green','#2ECC8A'),vol:tok('--blue','#5B8CFF'),volL:tok('--blue','#5B8CFF'),cost:tok('--muted2','#9099AA'),costL:tok('--muted2','#9099AA'),bad:tok('--red','#FF5C5C'),txt:tok('--text','#F0EDE8')};}
-function serieCouleurs(){return[PAL.ca,PAL.txt,'#9099AA','#6B7080','#555B6C'];} // 1er vendeur en or, les autres en tons neutres
-let anMetric='ens', anProd='ca', anJour=null, anStock='rythme', anSelP=null, anHid={}, _anKey='', _anW=0, _anSigP='';
+// ===== ANALYSES : graphiques et points clés pour décider (page « Analyses », menu Finance) =====
+let anMetric='ca', anProd='ca', anJour=null, _anKey='', _anW=0, _anSigP='';
 const JN=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
-const ICO={
-  trend:'<path d="M3 17l5.5-5.5 4 4L21 7"/><path d="M15 7h6v6"/>',
-  users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3.2 3.2 0 010 5.6M18.5 14.8c1.7.7 2.8 2.5 2.8 5.2"/>',
-  box:'<path d="M3.5 8L12 3.5 20.5 8v8L12 20.5 3.5 16z"/><path d="M3.5 8L12 12.5 20.5 8M12 12.5v8"/>',
-  cal:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
-  gauge:'<path d="M4 16a8 8 0 1116 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1.2"/>',
-  target:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
-  line:'<path d="M3 18l4.5-6 4 3 4-8 5.5 5"/>',
-  award:'<circle cx="12" cy="9" r="5.5"/><path d="M8.5 14l-1.5 7 5-3 5 3-1.5-7"/>',
-  star:'<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.8z"/>',
-  repeat:'<path d="M4 12a8 8 0 0113.7-5.6L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 01-13.7 5.6L4 15.5M4 20v-4.5h4.5"/>',
-  bars:'<path d="M5 20V10M12 20V4M19 20v-7"/>',
-  alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4.5M12 17.5v.01"/>',
-  down:'<path d="M3 7l5.5 5.5 4-4L21 17"/>',
-  basket:'<path d="M4 9h16l-1.6 9.2a2 2 0 01-2 1.6H7.6a2 2 0 01-2-1.6z"/><path d="M8.5 9l3-5M15.5 9l-3-5"/>',
-  moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>',
-  info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/>',
-  pct:'<path d="M6 18L18 6"/><circle cx="7.5" cy="7.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/>'
-};
-function ico(n,sz){sz=sz||17;return'<svg viewBox="0 0 24 24" width="'+sz+'" height="'+sz+'" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+ICO[n]+'</svg>';}
 function nbRecus(l){return new Set(l.map(v=>v.recuId||v.id)).size;}
 function somme(l,k){return l.reduce((s,v)=>s+(Number(v[k])||0),0);}
 function abrege(n){n=Math.round(n);const a=Math.abs(n);if(a>=1e6)return(n/1e6).toFixed(a>=1e7?0:1).replace('.0','')+' M';if(a>=1e3)return Math.round(n/1e3)+' k';return String(n);}
 function niceMax(m){const e=Math.pow(10,Math.floor(Math.log10(m)));const f=m/e;return(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;}
 function ventesEntre(base,d,f){return base.filter(v=>{const x=(v.date||'').slice(0,10);return x>=d&&x<=f;});}
-function nbJours(d0,d1){return Math.round((dUTC(d1)-dUTC(d0))/864e5)+1;}
 function plagePrecedente(){ // période juste avant, comparée sur le même nombre de jours écoulés
   const p=periode;if(p.mode==='tout')return null;
   const t=auj(),{debut,fin}=plagePeriode();let pd,pf;
   if(p.mode==='jour'){pd=pf=plusJours(debut,-1);}
   else if(p.mode==='semaine'){pd=plusJours(debut,-7);pf=plusJours(pd,6);}
   else if(p.mode==='mois'){const[y,m]=debut.split('-').map(Number);pd=isoD(new Date(Date.UTC(y,m-2,1)));pf=finDuMois(pd);}
-  else{const n=nbJours(debut,fin);pd=plusJours(debut,-n);pf=plusJours(debut,-1);}
-  if(fin>t){const n=nbJours(debut,t);const pf2=plusJours(pd,n-1);if(pf2<pf)pf=pf2;}
+  else{const n=Math.round((dUTC(fin)-dUTC(debut))/864e5)+1;pd=plusJours(debut,-n);pf=plusJours(debut,-1);}
+  if(fin>t){const n=Math.round((dUTC(t)-dUTC(debut))/864e5)+1;const pf2=plusJours(pd,n-1);if(pf2<pf)pf=pf2;}
   return{debut:pd,fin:pf};
 }
-function grille(debut,fin){ // jour / semaine / mois selon la durée
-  const nj=nbJours(debut,fin),gran=nj<=35?'jour':nj<=150?'semaine':'mois';
+function bucketiser(ventes,debut,fin,metric){ // regroupe par jour, semaine ou mois selon la durée
+  const nj=Math.round((dUTC(fin)-dUTC(debut))/864e5)+1;
+  const gran=nj<=35?'jour':nj<=150?'semaine':'mois';
   const cle=d=>gran==='jour'?d:gran==='semaine'?lundiDe(d):d.slice(0,7);
   const keys=[];
   if(gran==='mois'){let[y,m]=debut.slice(0,7).split('-').map(Number);const fm=fin.slice(0,7);for(let i=0;i<1200;i++){const k=y+'-'+p2(m);keys.push(k);if(k>=fm)break;m++;if(m===13){m=1;y++;}}}
   else{let d=gran==='jour'?debut:lundiDe(debut);const f=gran==='jour'?fin:lundiDe(fin);for(let i=0;i<400;i++){keys.push(d);if(d>=f)break;d=plusJours(d,gran==='jour'?1:7);}}
+  const acc={};keys.forEach(k=>{acc[k]={v:0,set:new Set()};});
+  ventes.forEach(v=>{const d=(v.date||'').slice(0,10);if(d<debut||d>fin)return;const b=acc[cle(d)];if(!b)return;
+    if(metric==='ca')b.v+=Number(v.ca)||0;else if(metric==='ben')b.v+=Number(v.benefice)||0;else b.set.add(v.recuId||v.id);});
   const lab=k=>gran==='jour'?dateCourte(k):gran==='semaine'?'sem. '+dateCourte(k):MOIS_COURT[+k.slice(5,7)-1]+' '+k.slice(2,4);
   const full=k=>gran==='jour'?dateLongue(k):gran==='semaine'?'Semaine du '+dateCourte(k,true):libMois(k);
-  return{gran,cle,keys,lab,full};
-}
-function bucketiser(ventes,debut,fin){ // CA, bénéfice et nombre de ventes par période
-  const g=grille(debut,fin),acc={};g.keys.forEach(k=>{acc[k]={ca:0,ben:0,set:new Set()};});
-  ventes.forEach(v=>{const d=(v.date||'').slice(0,10);if(d<debut||d>fin)return;const b=acc[g.cle(d)];if(!b)return;b.ca+=Number(v.ca)||0;b.ben+=Number(v.benefice)||0;b.set.add(v.recuId||v.id);});
-  return{gran:g.gran,pts:g.keys.map(k=>({k,label:g.lab(k),full:g.full(k),ca:acc[k].ca,ben:acc[k].ben,nb:acc[k].set.size}))};
-}
-function bucketVendeurs(ventes,debut,fin){ // une courbe par vendeur (top 5)
-  const g=grille(debut,fin),m={};
-  ventes.forEach(v=>{const d=(v.date||'').slice(0,10);if(d<debut||d>fin)return;const nom=v.vendeurNom||'—',k=g.cle(d);(m[nom]=m[nom]||{nom,vals:{},tot:0});m[nom].vals[k]=(m[nom].vals[k]||0)+(Number(v.ca)||0);m[nom].tot+=Number(v.ca)||0;});
-  const series=Object.values(m).sort((a,b)=>b.tot-a.tot).slice(0,5).map((s,i)=>({nom:s.nom,tot:s.tot,c:serieCouleurs()[i],vals:g.keys.map(k=>s.vals[k]||0)}));
-  return{gran:g.gran,pts:g.keys.map(k=>({k,label:g.lab(k),full:g.full(k)})),series};
+  return{gran,pts:keys.map(k=>({k,label:lab(k),full:full(k),v:metric==='nb'?acc[k].set.size:acc[k].v}))};
 }
 function deltaHTML(cur,prev,pts){
   if(prev===null)return'<span>sur toute la période</span>';
@@ -2053,137 +1994,79 @@ function deltaHTML(cur,prev,pts){
   const r=Math.round((cur-prev)/Math.abs(prev)*100);
   return r===0?'<span>= vs période préc.</span>':'<span style="color:var(--'+(r>0?'green':'red')+')">'+(r>0?'▲ +':'▼ −')+Math.abs(r)+'%</span> vs période préc.';
 }
-// ---- courbes lisses (interpolation monotone : aucun rebond artificiel) ----
-function lisse(xs,ys){
+// Courbe lisse (interpolation monotone : jamais de rebond artificiel entre deux points)
+function segmentsLisses(xs,ys){
   const n=xs.length,dx=[],m=[],t=[];
   for(let i=0;i<n-1;i++){dx[i]=xs[i+1]-xs[i]||1;m[i]=(ys[i+1]-ys[i])/dx[i];}
   t[0]=m[0];t[n-1]=m[n-2];
   for(let i=1;i<n-1;i++)t[i]=m[i-1]*m[i]<=0?0:(m[i-1]+m[i])/2;
   for(let i=0;i<n-1;i++){if(m[i]===0){t[i]=t[i+1]=0;}else{const a=t[i]/m[i],b=t[i+1]/m[i],s=a*a+b*b;if(s>9){const k=3/Math.sqrt(s);t[i]=k*a*m[i];t[i+1]=k*b*m[i];}}}
-  const seg=[];for(let i=0;i<n-1;i++){const h=dx[i]/3;seg.push({c1:[xs[i]+h,ys[i]+t[i]*h],c2:[xs[i+1]-h,ys[i+1]-t[i+1]*h],p:[xs[i+1],ys[i+1]]});}
+  const seg=[];
+  for(let i=0;i<n-1;i++){const h=dx[i]/3;seg.push(' C'+(xs[i]+h).toFixed(1)+' '+(ys[i]+t[i]*h).toFixed(1)+' '+(xs[i+1]-h).toFixed(1)+' '+(ys[i+1]-t[i+1]*h).toFixed(1)+' '+xs[i+1].toFixed(1)+' '+ys[i+1].toFixed(1));}
   return seg;
 }
-const f1=n=>n.toFixed(1);
-function cheminAvant(xs,ys,seg,n){let d='M'+f1(xs[0])+' '+f1(ys[0]);for(let i=0;i<n;i++)d+=' C'+f1(seg[i].c1[0])+' '+f1(seg[i].c1[1])+' '+f1(seg[i].c2[0])+' '+f1(seg[i].c2[1])+' '+f1(seg[i].p[0])+' '+f1(seg[i].p[1]);return d;}
-function cheminRetour(xs,ys,seg){let d='';for(let i=seg.length-1;i>=0;i--)d+=' C'+f1(seg[i].c2[0])+' '+f1(seg[i].c2[1])+' '+f1(seg[i].c1[0])+' '+f1(seg[i].c1[1])+' '+f1(xs[i])+' '+f1(ys[i]);return d;}
-function axes(w,H,pl,pr,pt,pbm,hi,pts,y,xs){
-  let g='';for(let i=0;i<=4;i++){const v=hi*i/4,yy=y(v);g+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+f1(yy)+'" y2="'+f1(yy)+'" stroke="rgba(255,255,255,.06)"/><text x="'+(pl-10)+'" y="'+f1(yy+3.5)+'" text-anchor="end" font-size="10" fill="#7C8296">'+abrege(v)+'</text>';}
-  const n=pts.length,ne=Math.max(2,Math.min(5,Math.floor(w/95))),idx=n<=ne?pts.map((_,i)=>i):Array.from({length:ne},(_,k)=>Math.round(k*(n-1)/(ne-1)));
-  return g+idx.map(i=>'<text x="'+f1(xs[i])+'" y="'+(H-9)+'" text-anchor="'+(i===0?'start':i===n-1?'end':'middle')+'" font-size="10" fill="#9099AA">'+esc(pts[i].label)+'</text>').join('');
-}
-function bulleSVG(pt,H,pbm){return'<g id="an-tip" style="display:none;pointer-events:none"><line id="an-tl" y1="'+pt+'" y2="'+(H-pbm)+'" stroke="rgba(255,255,255,.28)" stroke-dasharray="3 4"/><g id="an-dots"></g><rect id="an-tr" rx="10" fill="#14161C" stroke="#2A2D38"/><text id="an-t0" font-size="10.5" fill="#9099AA"></text>'+[1,2,3,4,5,6].map(i=>'<text id="an-t'+i+'" font-size="11.5" font-weight="600" fill="#EDE8DE"></text>').join('')+'</g>';}
-// ---- vue d'ensemble : le chiffre d'affaires, avec dedans la part du coût et la part du bénéfice ----
-function ensembleHTML(w,pts,partiel){
-  const H=250,pl=44,pr=16,pt=16,pbm=30,n=pts.length;
-  const ca=pts.map(p=>p.ca),pro=pts.map(p=>Math.max(0,Math.min(p.ben,p.ca))),cost=ca.map((v,i)=>v-pro[i]);
-  const hi=niceMax(Math.max(1,...ca)),y=v=>pt+(H-pt-pbm)*(1-v/hi);
-  const xs=pts.map((_,i)=>pl+(n===1?(w-pl-pr)/2:i*(w-pl-pr)/(n-1)));
-  const yC=ca.map(y),yK=cost.map(y),base=y(0),sC=lisse(xs,yC),sK=lisse(xs,yK);
-  const aireCout=cheminAvant(xs,yK,sK,n-1)+' L'+f1(xs[n-1])+' '+f1(base)+' L'+f1(xs[0])+' '+f1(base)+' Z';
-  const aireBen=cheminAvant(xs,yC,sC,n-1)+' L'+f1(xs[n-1])+' '+f1(yK[n-1])+cheminRetour(xs,yK,sK)+' Z';
-  const dern=partiel&&n>2,nl=dern?n-1:n;
-  const ligne=cheminAvant(xs,yC,sC,nl-1);
-  const enCours=dern?'<path class="an-fade" d="M'+f1(xs[nl-1])+' '+f1(yC[nl-1])+' C'+f1(sC[nl-1].c1[0])+' '+f1(sC[nl-1].c1[1])+' '+f1(sC[nl-1].c2[0])+' '+f1(sC[nl-1].c2[1])+' '+f1(sC[nl-1].p[0])+' '+f1(sC[nl-1].p[1])+'" fill="none" stroke="'+PAL.ca+'" stroke-width="2.2" stroke-dasharray="2 6" stroke-linecap="round"/>':'';
-  const dernierPoint='<circle class="an-fade" cx="'+f1(xs[n-1])+'" cy="'+f1(yC[n-1])+'" r="4" fill="#0B0C10" stroke="'+PAL.ca+'" stroke-width="2.2"/>';
-  const svg='<svg viewBox="0 0 '+w+' '+H+'" width="'+w+'" height="'+H+'" style="display:block;touch-action:pan-y;user-select:none"><defs>'+
-    '<linearGradient id="g-k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+PAL.cost+'" stop-opacity=".30"/><stop offset="1" stop-color="'+PAL.cost+'" stop-opacity=".10"/></linearGradient>'+
-    '<linearGradient id="g-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+PAL.ben+'" stop-opacity=".78"/><stop offset="1" stop-color="'+PAL.ben+'" stop-opacity=".5"/></linearGradient></defs>'+
-    axes(w,H,pl,pr,pt,pbm,hi,pts,y,xs)+
-    '<path class="an-fade" d="'+aireCout+'" fill="url(#g-k)"/><path class="an-fade" d="'+aireBen+'" fill="url(#g-b)"/>'+
-    '<path class="an-fade" d="'+cheminAvant(xs,yK,sK,n-1)+'" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1"/>'+
-    '<path class="an-line" pathLength="1" d="'+ligne+'" fill="none" stroke="'+PAL.ca+'" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>'+enCours+dernierPoint+
-    bulleSVG(pt,H,pbm)+'<rect x="'+pl+'" y="0" width="'+(w-pl-pr)+'" height="'+H+'" fill="transparent"/></svg>';
-  return{html:svg,xs:xs,dots:i=>[[xs[i],yC[i],PAL.ca]],pl:pl,pr:pr,pt:pt,H:H,
-    titre:i=>pts[i].full+(partiel&&i===n-1?' · en cours':''),
-    lignes:i=>{const p=pts[i],b=Math.max(0,p.ben);return[{t:'CA  '+fcfa(p.ca),c:PAL.caL},{t:'Coût  '+fcfa(p.ca-b)+(p.ca?'  ('+Math.round((p.ca-b)/p.ca*100)+'%)':''),c:PAL.costL},{t:'Bénéfice  '+fcfa(p.ben)+(p.ca?'  ('+Math.round(p.ben/p.ca*100)+'%)':''),c:PAL.benL}];}};
-}
-// ---- une seule mesure : CA, bénéfice ou ventes ----
+const COUL={ca:['#FFD07A','#F5A623'],ben:['#5BE3A8','#2ECC8A'],nb:['#8FB0FF','#5B8CFF']};
 function courbeHTML(w,pts,metric,partiel){
-  const H=250,pl=44,pr=16,pt=26,pbm=30,n=pts.length,col=metric==='ca'?PAL.ca:metric==='ben'?PAL.ben:PAL.vol,colL=metric==='ca'?PAL.caL:metric==='ben'?PAL.benL:PAL.volL;
-  const vals=pts.map(p=>p[metric]),mx=Math.max(1,...vals),mn=Math.min(0,...vals),hi=niceMax(mx),lo=mn<0?-niceMax(-mn):0;
+  const H=250,pl=44,pr=16,pt=30,pbm=30,c1=COUL[metric][0],c2=COUL[metric][1];
+  const vals=pts.map(p=>p.v),mx=Math.max(1,...vals),mn=Math.min(0,...vals);
+  const hi=niceMax(mx),lo=mn<0?-niceMax(-mn):0,n=pts.length;
   const xs=pts.map((_,i)=>pl+(n===1?(w-pl-pr)/2:i*(w-pl-pr)/(n-1)));
-  const y=v=>pt+(H-pt-pbm)*(1-(v-lo)/(hi-lo)),ys=vals.map(y),seg=lisse(xs,ys),base=y(Math.max(0,lo));
-  let g='';for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4,yy=y(v);g+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+f1(yy)+'" y2="'+f1(yy)+'" stroke="rgba(255,255,255,.06)"/><text x="'+(pl-10)+'" y="'+f1(yy+3.5)+'" text-anchor="end" font-size="10" fill="#7C8296">'+abrege(v)+'</text>';}
+  const y=v=>pt+(H-pt-pbm)*(1-(v-lo)/(hi-lo)),ys=pts.map(p=>y(p.v));
+  let g='';for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4,yy=y(v);g+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'" stroke="rgba(255,255,255,.07)" stroke-dasharray="2 6"/><text x="'+(pl-10)+'" y="'+(yy+3.5).toFixed(1)+'" text-anchor="end" font-size="10" fill="#7C8296">'+abrege(v)+'</text>';}
+  const seg=n>1?segmentsLisses(xs,ys):[],dernier=partiel&&n>2,nl=dernier?n-1:n;
+  const start='M'+xs[0].toFixed(1)+' '+ys[0].toFixed(1);
+  const solide=start+seg.slice(0,nl-1).join('');
+  const tout=start+seg.join(''),base=y(Math.max(0,lo));
+  const aire=tout+' L'+xs[n-1].toFixed(1)+' '+base.toFixed(1)+' L'+xs[0].toFixed(1)+' '+base.toFixed(1)+' Z';
+  const enCours=dernier?'<path class="an-fade" d="M'+xs[nl-1].toFixed(1)+' '+ys[nl-1].toFixed(1)+seg[nl-1]+'" fill="none" stroke="'+c2+'" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/>':'';
   const ne=Math.max(2,Math.min(5,Math.floor(w/95))),idx=n<=ne?pts.map((_,i)=>i):Array.from({length:ne},(_,k)=>Math.round(k*(n-1)/(ne-1)));
-  g+=idx.map(i=>'<text x="'+f1(xs[i])+'" y="'+(H-9)+'" text-anchor="'+(i===0?'start':i===n-1?'end':'middle')+'" font-size="10" fill="#9099AA">'+esc(pts[i].label)+'</text>').join('');
-  const dern=partiel&&n>2,nl=dern?n-1:n;
-  const aire=cheminAvant(xs,ys,seg,n-1)+' L'+f1(xs[n-1])+' '+f1(base)+' L'+f1(xs[0])+' '+f1(base)+' Z';
-  const enCours=dern?'<path class="an-fade" d="M'+f1(xs[nl-1])+' '+f1(ys[nl-1])+' C'+f1(seg[nl-1].c1[0])+' '+f1(seg[nl-1].c1[1])+' '+f1(seg[nl-1].c2[0])+' '+f1(seg[nl-1].c2[1])+' '+f1(seg[nl-1].p[0])+' '+f1(seg[nl-1].p[1])+'" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-dasharray="2 6" stroke-linecap="round"/>':'';
-  let pic='';if(n>=4&&mx>0){const bi=vals.indexOf(mx),bx=Math.min(Math.max(xs[bi],pl+20),w-pr-20),by=Math.max(ys[bi]-24,3);
-    pic='<g class="an-fade"><rect x="'+f1(bx-20)+'" y="'+f1(by)+'" width="40" height="16" rx="8" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.16)"/><text x="'+f1(bx)+'" y="'+f1(by+11.5)+'" text-anchor="middle" font-size="9.5" font-weight="600" fill="'+colL+'">pic</text></g>';}
-  const svg='<svg viewBox="0 0 '+w+' '+H+'" width="'+w+'" height="'+H+'" style="display:block;touch-action:pan-y;user-select:none"><defs><linearGradient id="g-1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+col+'" stop-opacity=".30"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'+g+
-    '<path class="an-fade" d="'+aire+'" fill="url(#g-1)"/><path class="an-line" pathLength="1" d="'+cheminAvant(xs,ys,seg,nl-1)+'" fill="none" stroke="'+col+'" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>'+enCours+pic+
-    '<circle class="an-fade" cx="'+f1(xs[n-1])+'" cy="'+f1(ys[n-1])+'" r="4" fill="#0B0C10" stroke="'+col+'" stroke-width="2.2"/>'+bulleSVG(pt,H,pbm)+'<rect x="'+pl+'" y="0" width="'+(w-pl-pr)+'" height="'+H+'" fill="transparent"/></svg>';
-  return{html:svg,xs:xs,dots:i=>[[xs[i],ys[i],col]],pl:pl,pr:pr,pt:pt,H:H,
-    titre:i=>pts[i].full+(partiel&&i===n-1?' · en cours':''),
-    lignes:i=>{const p=pts[i],prev=i>0?pts[i-1][metric]:null,l=[{t:metric==='nb'?p.nb+' vente'+(p.nb>1?'s':''):fcfa(p[metric]),c:colL}];
-      if(prev!==null&&prev>0){const r=Math.round((p[metric]-prev)/prev*100);l.push({t:(r>=0?'▲ +':'▼ −')+Math.abs(r)+'% vs précédent',c:r>=0?PAL.benL:PAL.bad});}return l;}};
+  const xl=idx.map(i=>'<text x="'+xs[i].toFixed(1)+'" y="'+(H-9)+'" text-anchor="'+(i===0?'start':i===n-1?'end':'middle')+'" font-size="10" fill="#9099AA">'+esc(pts[i].label)+'</text>').join('');
+  let pic='';
+  if(n>=4&&mx>0){const bi=vals.indexOf(mx),bx=Math.min(Math.max(xs[bi],pl+22),w-pr-22),by=Math.max(ys[bi]-24,3);
+    pic='<g class="an-fade"><rect x="'+(bx-22).toFixed(1)+'" y="'+by.toFixed(1)+'" width="44" height="17" rx="8.5" fill="'+c2+'" fill-opacity=".16" stroke="'+c2+'" stroke-opacity=".55"/><text x="'+bx.toFixed(1)+'" y="'+(by+12).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" fill="'+c1+'">★ pic</text></g>';}
+  const dernierPoint='<g class="an-fade"><circle class="an-pulse" cx="'+xs[n-1].toFixed(1)+'" cy="'+ys[n-1].toFixed(1)+'" r="6" fill="'+c2+'" fill-opacity=".35"/><circle cx="'+xs[n-1].toFixed(1)+'" cy="'+ys[n-1].toFixed(1)+'" r="4" fill="#0B0C10" stroke="'+c1+'" stroke-width="2.5"/></g>';
+  return{html:'<svg viewBox="0 0 '+w+' '+H+'" width="'+w+'" height="'+H+'" style="display:block;touch-action:pan-y;user-select:none"><defs>'+
+    '<linearGradient id="an-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c2+'" stop-opacity=".42"/><stop offset=".7" stop-color="'+c2+'" stop-opacity=".07"/><stop offset="1" stop-color="'+c2+'" stop-opacity="0"/></linearGradient>'+
+    '<linearGradient id="an-l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+c2+'"/><stop offset="1" stop-color="'+c1+'"/></linearGradient>'+
+    '<filter id="an-glow" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+g+
+    '<path class="an-fade" d="'+aire+'" fill="url(#an-g)"/>'+
+    '<path class="an-line" pathLength="1" d="'+solide+'" fill="none" stroke="url(#an-l)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" filter="url(#an-glow)"/>'+enCours+pic+dernierPoint+xl+
+    '<g id="an-tip" style="display:none;pointer-events:none"><line id="an-tl" y1="'+pt+'" y2="'+(H-pbm)+'" stroke="rgba(255,255,255,.35)" stroke-dasharray="3 4"/><circle id="an-tc" r="6" fill="#0B0C10" stroke="'+c1+'" stroke-width="3"/>'+
+    '<rect id="an-tr" rx="10" fill="#171A24" stroke="rgba(255,255,255,.14)"/><text id="an-t1" font-size="10" fill="#9099AA"></text><text id="an-t2" font-size="13" font-weight="700" fill="#F4F1EA"></text><text id="an-t3" font-size="10"></text></g>'+
+    '<rect x="'+pl+'" y="0" width="'+(w-pl-pr)+'" height="'+H+'" fill="transparent"/></svg>',xs:xs,ys:ys,pl:pl,pr:pr,pt:pt,H:H};
 }
-// ---- évolution des vendeurs : une courbe par vendeur ----
-function vendeursHTML(w,d,visibles,partiel){
-  const H=250,pl=44,pr=16,pt=16,pbm=30,n=d.pts.length,vis=d.series.filter(s=>visibles[s.nom]!==false);
-  const mx=Math.max(1,...vis.flatMap(s=>s.vals)),hi=niceMax(mx),y=v=>pt+(H-pt-pbm)*(1-v/hi);
-  const xs=d.pts.map((_,i)=>pl+(n===1?(w-pl-pr)/2:i*(w-pl-pr)/(n-1)));
-  const lignes=vis.map(s=>{const ys=s.vals.map(y),seg=lisse(xs,ys),k=d.series.indexOf(s);return'<path class="'+(k>=3?'an-fade':'an-line')+'" pathLength="1" d="'+cheminAvant(xs,ys,seg,n-1)+'" fill="none" stroke="'+s.c+'" stroke-width="'+(k===0?2.6:2)+'" '+(k>=3?'stroke-dasharray="5 4" ':'')+'stroke-linejoin="round" stroke-linecap="round"/><circle class="an-fade" cx="'+f1(xs[n-1])+'" cy="'+f1(ys[n-1])+'" r="3.5" fill="#0B0C10" stroke="'+s.c+'" stroke-width="2"/>';}).join('');
-  const svg='<svg viewBox="0 0 '+w+' '+H+'" width="'+w+'" height="'+H+'" style="display:block;touch-action:pan-y;user-select:none">'+axes(w,H,pl,pr,pt,pbm,hi,d.pts,y,xs)+lignes+bulleSVG(pt,H,pbm)+'<rect x="'+pl+'" y="0" width="'+(w-pl-pr)+'" height="'+H+'" fill="transparent"/></svg>';
-  return{html:svg,xs:xs,dots:i=>vis.map(s=>[xs[i],y(s.vals[i]),s.c]),pl:pl,pr:pr,pt:pt,H:H,
-    titre:i=>d.pts[i].full+(partiel&&i===n-1?' · en cours':''),
-    lignes:i=>vis.map(s=>({t:s.nom+'  '+fcfa(s.vals[i]),c:s.c})).sort((a,b)=>0)};
-}
-function brancherTip(box,c,w){
-  const svg=box.querySelector('svg'),G=id=>svg.querySelector('#'+id),tip=G('an-tip'),dots=G('an-dots');
-  const show=i=>{const L=c.lignes(i),titre=c.titre(i),all=[titre].concat(L.map(l=>l.t)),bw=Math.max(...all.map((t,k)=>t.length*(k?6.3:5.8)))+24,bh=26+L.length*17;
-    const ys=c.dots(i).map(d=>d[1]),top=Math.min(...ys);
-    const bx=c.xs[i]>w*0.55?Math.max(c.xs[i]-bw-14,c.pl+4):Math.min(c.xs[i]+14,w-c.pr-bw+8),by=c.pt+2;
+function brancherTip(box,c,pts,metric,w,partiel){
+  const svg=box.querySelector('svg'),G=id=>svg.querySelector('#'+id),tip=G('an-tip');
+  const show=i=>{const p=pts[i],val=metric==='nb'?p.v+' vente'+(p.v>1?'s':''):fcfa(p.v);
+    const prev=i>0?pts[i-1].v:null;let dt='',dc='#9099AA';
+    if(prev!==null&&prev>0){const r=Math.round((p.v-prev)/prev*100);dt=(r>=0?'▲ +':'▼ −')+Math.abs(r)+'% vs précédent';dc=r>=0?'#2ECC8A':'#FF6B6B';}
+    const lbl=p.full+(partiel&&i===pts.length-1?' · en cours':'');
+    const bw=Math.max(lbl.length*5.6,val.length*8,dt.length*5.4)+22,bh=dt?52:38;
+    let bx=Math.min(Math.max(c.xs[i]-bw/2,c.pl-30),w-c.pr-bw+10),by=c.ys[i]>bh+c.pt+14?c.ys[i]-bh-14:c.ys[i]+16;
     const r=G('an-tr');r.setAttribute('x',bx);r.setAttribute('y',by);r.setAttribute('width',bw);r.setAttribute('height',bh);
-    const t0=G('an-t0');t0.textContent=titre;t0.setAttribute('x',bx+12);t0.setAttribute('y',by+17);
-    for(let k=1;k<=6;k++){const t=G('an-t'+k);if(k<=L.length){t.textContent=L[k-1].t;t.setAttribute('fill',L[k-1].c);t.setAttribute('x',bx+12);t.setAttribute('y',by+17+k*17);t.style.display='';}else t.style.display='none';}
-    G('an-tl').setAttribute('x1',c.xs[i]);G('an-tl').setAttribute('x2',c.xs[i]);
-    dots.innerHTML=c.dots(i).map(d=>'<circle cx="'+f1(d[0])+'" cy="'+f1(d[1])+'" r="5" fill="#0B0C10" stroke="'+d[2]+'" stroke-width="2.4"/>').join('');tip.style.display='block';};
+    const t1=G('an-t1'),t2=G('an-t2'),t3=G('an-t3');t1.textContent=lbl;t2.textContent=val;t3.textContent=dt;t3.setAttribute('fill',dc);
+    t1.setAttribute('x',bx+11);t1.setAttribute('y',by+16);t2.setAttribute('x',bx+11);t2.setAttribute('y',by+33);t3.setAttribute('x',bx+11);t3.setAttribute('y',by+46);
+    G('an-tl').setAttribute('x1',c.xs[i]);G('an-tl').setAttribute('x2',c.xs[i]);G('an-tc').setAttribute('cx',c.xs[i]);G('an-tc').setAttribute('cy',c.ys[i]);tip.style.display='block';};
   const move=e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)*(w/r.width);let bi=0,bd=1e9;c.xs.forEach((x,i)=>{const d=Math.abs(x-px);if(d<bd){bd=d;bi=i;}});show(bi);};
   svg.addEventListener('pointermove',move);svg.addEventListener('pointerdown',move);svg.addEventListener('pointerleave',()=>{tip.style.display='none';});
 }
-// ---- classements (barre = CA : coût taupe + bénéfice vert) ----
-function rangHTML(rows,mode){
+function rangHTML(rows,mode){ // classement : médailles, barre empilée coût (or) + bénéfice (vert), ou barre bleue pour les quantités
   const max=Math.max(1,...rows.map(r=>r.v));
   return rows.map((r,i)=>{
-    const w=Math.max(4,Math.round(Math.max(0,r.v)/max*100)),benPart=mode==='qte'?0:(r.ca>0?Math.max(0,Math.min(100,r.ben/r.ca*100)):0);
+    const w=Math.max(4,Math.round(Math.max(0,r.v)/max*100));
+    const benPart=mode==='qte'?0:(r.ca>0?Math.max(0,Math.min(100,r.ben/r.ca*100)):0);
     const barre=mode==='qte'?'<i class="an-bq" style="flex:1"></i>':'<i class="an-bc" style="flex:0 0 '+(100-benPart).toFixed(1)+'%"></i><i class="an-bb" style="flex:1"></i>';
     const sub=mode==='qte'?'<span>CA '+abrege(r.ca)+' F</span><span>bénéfice <b>'+abrege(r.ben)+' F</b></span>':'<span>'+esc(r.sub)+'</span><span>marge <b>'+(r.ca>0?Math.round(r.ben/r.ca*100):0)+'%</b></span>';
     return'<div class="an-rk"><div class="an-rank r'+(i+1)+'">'+(i+1)+'</div><div class="an-rk-main"><div class="an-rk-top"><span class="an-nom" title="'+esc(r.nom)+'">'+esc(r.nom)+'</span><span class="an-big">'+(mode==='qte'?r.v+' u.':abrege(r.v)+' F')+'</span></div>'+
       '<div class="an-bar"><div class="an-bw" data-w="'+w+'" style="--d:'+(i*70)+'ms">'+barre+'</div></div><div class="an-rk-sub">'+sub+'</div></div></div>';}).join('');
 }
-// ---- rentabilité : volume vendu × marge (qui rapporte vraiment ?) ----
-function matriceHTML(w,rows,margeMoy,sel){
-  const H=250,pl=40,pr=14,pt=14,pbm=30,mq=Math.max(1,...rows.map(r=>r.q))*1.18,mm=Math.min(100,Math.max(20,Math.max(...rows.map(r=>r.marge))*1.2)),mb=Math.max(1,...rows.map(r=>Math.max(0,r.ben)));
-  const x=q=>pl+(w-pl-pr)*q/mq,y=m=>pt+(H-pt-pbm)*(1-m/mm),qs=rows.map(r=>r.q).sort((a,b)=>a-b),qm=qs[Math.floor(qs.length/2)];
-  const xm=x(qm),ym=y(margeMoy);
-  let h='<svg viewBox="0 0 '+w+' '+H+'" width="'+w+'" height="'+H+'" style="display:block">';
-  h+='<rect x="'+f1(xm)+'" y="'+pt+'" width="'+f1(w-pr-xm)+'" height="'+f1(ym-pt)+'" fill="rgba(245,166,35,.06)"/>';
-  for(let i=0;i<=4;i++){const m=mm*i/4,yy=y(m);h+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+f1(yy)+'" y2="'+f1(yy)+'" stroke="rgba(255,255,255,.05)"/><text x="'+(pl-8)+'" y="'+f1(yy+3.5)+'" text-anchor="end" font-size="10" fill="#7C8296">'+Math.round(m)+'%</text>';}
-  h+='<line x1="'+f1(xm)+'" x2="'+f1(xm)+'" y1="'+pt+'" y2="'+(H-pbm)+'" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 5"/><line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+f1(ym)+'" y2="'+f1(ym)+'" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 5"/>';
-  h+='<text x="'+(w-pr-6)+'" y="'+(pt+14)+'" text-anchor="end" font-size="9.5" font-weight="600" fill="'+PAL.ca+'" opacity=".75" letter-spacing=".5">STARS</text><text x="'+(pl+8)+'" y="'+(pt+14)+'" font-size="9.5" font-weight="600" fill="#6B7080" letter-spacing=".5">À POUSSER</text><text x="'+(w-pr-6)+'" y="'+(H-pbm-8)+'" text-anchor="end" font-size="9.5" font-weight="600" fill="#6B7080" letter-spacing=".5">À SURVEILLER</text><text x="'+(pl+8)+'" y="'+(H-pbm-8)+'" font-size="9.5" font-weight="600" fill="#6B7080" letter-spacing=".5">À REVOIR</text>';
-  h+='<text x="'+(w-pr)+'" y="'+(H-9)+'" text-anchor="end" font-size="10" fill="#9099AA">quantités vendues →</text><text x="'+(pl)+'" y="'+(H-9)+'" font-size="10" fill="#9099AA">0</text>';
-  rows.forEach((r,i)=>{const cx=x(r.q),cy=y(Math.max(0,r.marge)),rad=6+11*Math.sqrt(Math.max(0,r.ben)/mb),on=i===sel;
-    h+='<g onclick="anPickP('+i+')" style="cursor:pointer"><circle cx="'+f1(cx)+'" cy="'+f1(cy)+'" r="'+f1(rad+6)+'" fill="transparent"/><circle class="an-fade" cx="'+f1(cx)+'" cy="'+f1(cy)+'" r="'+f1(rad)+'" fill="'+PAL.ca+'" fill-opacity="'+(on?.9:.5)+'" stroke="'+(on?PAL.txt:PAL.caL)+'" stroke-width="'+(on?2:1)+'"/>'+
-      (on||rad>11?'<text x="'+f1(Math.min(Math.max(cx,pl+32),w-pr-32))+'" y="'+f1(cy-rad-5<pt+26?cy+rad+14:cy-rad-5)+'" text-anchor="middle" font-size="10.5" font-weight="600" fill="'+PAL.txt+'">'+esc(r.nom.length>14?r.nom.slice(0,13)+'…':r.nom)+'</text>':'')+'</g>';});
-  return h+'</svg>';
-}
-function conseilP(r,qm,margeMoy){
-  const haut=r.marge>=margeMoy,vend=r.q>=qm;
-  if(haut&&vend)return'<b>Star</b> : il se vend bien et rapporte bien. Ne tombe jamais en rupture et mets-le en avant.';
-  if(haut&&!vend)return'<b>À pousser</b> : très rentable mais peu vendu. Des statuts, des offres et des packs peuvent le faire décoller.';
-  if(!haut&&vend)return'<b>À surveiller</b> : il se vend beaucoup mais rapporte peu. Vérifie son prix de vente ou négocie ton coût d\'achat.';
-  return'<b>À revoir</b> : peu vendu et peu rentable. Bon candidat pour une vente flash afin de libérer de l\'argent.';
-}
 function vide(msg){return'<div class="an-empty">'+msg+'</div>';}
-function anSet(k,v){if(k==='metric')anMetric=v;else if(k==='prod')anProd=v;else anStock=v;renderAnalyses(true);}
+function anSet(k,v){if(k==='metric')anMetric=v;else anProd=v;renderAnalyses(true);}
 function anPickJour(i){anJour=i;renderAnalyses(true);}
-function anPickP(i){anSelP=i;renderAnalyses(true);}
-function anVis(nom){anHid[nom]=anHid[nom]===false?true:false;renderAnalyses(true);}
 function majThumbs(){
-  ['an-metric','an-prod','an-stock'].forEach(id=>{
-    const seg=document.getElementById(id);if(!seg)return;
+  const cm={ca:'',ben:'g',nb:'b'},cp={ca:'',qte:'b'};
+  [['an-metric',anMetric,cm],['an-prod',anProd,cp]].forEach(([id,k,m])=>{
+    const seg=document.getElementById(id);if(!seg)return;seg.dataset.c=m[k];
     const b=seg.querySelector('button.on'),th=seg.querySelector('.an-thumb');if(!b||!th||!b.offsetWidth)return;
     if(!th.dataset.i){th.style.transition='none';th.dataset.i='1';}else th.style.transition='';
     th.style.width=b.offsetWidth+'px';th.style.transform='translateX('+b.offsetLeft+'px)';
@@ -2191,12 +2074,13 @@ function majThumbs(){
   });
 }
 function renderAnalyses(force){
-  renderPeriodeBar();majPal();
+  renderPeriodeBar();
   const sec=document.getElementById('sec-analyses');if(!sec||!sec.classList.contains('active'))return;
   const base=ventesVisibles(),cur=getVentesPeriode(),t=auj();
-  const sigP=[periode.mode,periode.ref,periode.debut,periode.fin].join('|');if(sigP!==_anSigP){_anSigP=sigP;anJour=null;anSelP=null;}
-  const key=[sigP,anMetric,anProd,anJour,anStock,anSelP,JSON.stringify(anHid),DB.ventes.length,Math.round(somme(base,'ca')),DB.produits.length,Math.round(somme(DB.produits,'stock'))].join('#');
-  [['an-metric',anMetric],['an-prod',anProd],['an-stock',anStock]].forEach(([id,k])=>document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on',b.dataset.k===k)));
+  const sigP=[periode.mode,periode.ref,periode.debut,periode.fin].join('|');if(sigP!==_anSigP){_anSigP=sigP;anJour=null;}
+  const key=[sigP,anMetric,anProd,anJour,DB.ventes.length,Math.round(somme(base,'ca')),DB.produits.length,Math.round(somme(DB.produits,'stock'))].join('#');
+  document.querySelectorAll('#an-metric button').forEach(b=>b.classList.toggle('on',b.dataset.k===anMetric));
+  document.querySelectorAll('#an-prod button').forEach(b=>b.classList.toggle('on',b.dataset.k===anProd));
   majThumbs();
   if(!force&&key===_anKey)return;_anKey=key;
   const pr=plagePrecedente(),prev=pr?ventesEntre(base,pr.debut,pr.fin):null;
@@ -2208,90 +2092,62 @@ function renderAnalyses(force){
     '<div class="stat-card gr"><div class="stat-glow"></div><div class="stat-label">Bénéfice</div><div class="stat-value">'+fr(ben)+'</div><div class="stat-sub">'+deltaHTML(ben,pben)+'</div></div>'+
     '<div class="stat-card bl"><div class="stat-glow"></div><div class="stat-label">Ventes</div><div class="stat-value">'+nb+'</div><div class="stat-sub">'+deltaHTML(nb,pnb)+'</div></div>'+
     '<div class="stat-card g"><div class="stat-glow"></div><div class="stat-label">Marge</div><div class="stat-value">'+(ca>0?Math.round(marge):0)+'%</div><div class="stat-sub">'+deltaHTML(marge,pmarge===null&&prev?0:pmarge,true)+'</div></div>';
+  // --- Évolution ---
+  const box=document.getElementById('an-courbe');
   let d0=plagePeriode().debut,d1=plagePeriode().fin;
   if(periode.mode==='tout'){d0=premiereActivite();d1=t;}if(d1>t)d1=t;if(d0>d1)d0=d1;
-  const enCours=(d1===t),w0=document.getElementById('an-courbe').clientWidth;_anW=window.innerWidth;
-  // --- Évolution (ensemble / CA / bénéfice / ventes) ---
-  const box=document.getElementById('an-courbe'),grain=document.getElementById('an-grain'),leg=document.getElementById('an-leg-e');
-  if(!cur.length){box.innerHTML=vide('Aucune vente sur cette période');grain.textContent='';leg.innerHTML='';}
-  else if(d0===d1){box.innerHTML=vide('Une courbe apparaît à partir de 2 jours.<br>Choisis Semaine, Mois ou Tout.');grain.textContent='';leg.innerHTML='';}
-  else{const w=Math.max(w0,260),s=bucketiser(base,d0,d1),c=anMetric==='ens'?ensembleHTML(w,s.pts,enCours):courbeHTML(w,s.pts,anMetric,enCours);
-    box.innerHTML=c.html;brancherTip(box,c,w);
-    grain.innerHTML=(s.gran==='jour'?'par jour':s.gran==='semaine'?'par semaine':'par mois')+'<span class="an-hint"> · touche la courbe pour le détail</span>';
-    leg.innerHTML=anMetric==='ens'?'<span><i class="lgl" style="background:'+PAL.ca+'"></i>CA total</span><span><i class="lg" style="background:'+PAL.cost+'"></i>coût</span><span><i class="lg" style="background:'+PAL.ben+'"></i>bénéfice</span>':'';}
-  // --- Évolution des vendeurs ---
-  const vb=document.getElementById('an-evo-v'),vlg=document.getElementById('an-leg-ev');
-  const dv=cur.length&&d0<d1?bucketVendeurs(base,d0,d1):null;
-  if(!dv||dv.series.length<2){vb.innerHTML=vide(!cur.length?'Aucune vente sur cette période':d0===d1?'Choisis une semaine ou plus':'Un seul vendeur a vendu sur cette période');vlg.innerHTML='';}
-  else{const w=Math.max(vb.clientWidth,260),c=vendeursHTML(w,dv,anHid,enCours);vb.innerHTML=c.html;brancherTip(vb,c,w);
-    vlg.innerHTML=dv.series.map(s=>'<button class="an-chip'+(anHid[s.nom]===false?' off':'')+'" onclick="anVis(\''+esc(s.nom).replace(/'/g,"\\'")+'\')"><i style="background:'+s.c+'"></i>'+esc(s.nom)+'<em>'+abrege(s.tot)+' F</em></button>').join('');}
-  // --- Vendeurs (classement) ---
+  const grain=document.getElementById('an-grain');
+  if(!cur.length){box.innerHTML=vide('Aucune vente sur cette période');grain.textContent='';}
+  else if(d0===d1){box.innerHTML=vide('Une courbe apparaît à partir de 2 jours.<br>Choisis Semaine, Mois ou Tout.');grain.textContent='';}
+  else{const w=Math.max(box.clientWidth,260);_anW=window.innerWidth;const s=bucketiser(base,d0,d1,anMetric),enCours=(d1===t),c=courbeHTML(w,s.pts,anMetric,enCours);
+    box.innerHTML=c.html;brancherTip(box,c,s.pts,anMetric,w,enCours);
+    grain.innerHTML=(s.gran==='jour'?'par jour':s.gran==='semaine'?'par semaine':'par mois')+'<span class="an-hint"> · touche la courbe pour le détail</span>';}
+  // --- Vendeurs ---
   const gv={};cur.forEach(v=>{const k=v.vendeurId||v.vendeurNom||'—';(gv[k]=gv[k]||{nom:v.vendeurNom||'—',l:[]}).l.push(v);});
   const rv=Object.values(gv).map(g=>({nom:g.nom,v:somme(g.l,'ca'),ca:somme(g.l,'ca'),ben:somme(g.l,'benefice'),sub:nbRecus(g.l)+' vente'+(nbRecus(g.l)>1?'s':'')})).sort((a,b)=>b.v-a.v).slice(0,5);
-  document.getElementById('an-leg-v').innerHTML='<i class="lg" style="background:'+PAL.cost+'"></i>coût <i class="lg" style="background:'+PAL.ben+'"></i>bénéfice';
+  document.getElementById('an-leg-v').innerHTML='<i class="lg" style="background:#F5A623"></i>coût <i class="lg" style="background:#2ECC8A"></i>bénéfice';
   document.getElementById('an-vendeurs').innerHTML=rv.length?rangHTML(rv,'ca'):vide('Aucune vente');
   // --- Produits ---
   const gp={};cur.forEach(v=>{const k=v.produitId||v.produitNom;(gp[k]=gp[k]||{nom:v.produitNom||'—',l:[]}).l.push(v);});
-  const lp=Object.values(gp).map(g=>({nom:g.nom,ca:somme(g.l,'ca'),ben:somme(g.l,'benefice'),q:somme(g.l,'qte')}));
-  const rp=lp.map(g=>({nom:g.nom,ca:g.ca,ben:g.ben,v:anProd==='ca'?g.ca:g.q,sub:g.q+' vendu'+(g.q>1?'s':'')})).sort((a,b)=>b.v-a.v).slice(0,5);
-  document.getElementById('an-leg-p').innerHTML=anProd==='ca'?'<i class="lg" style="background:'+PAL.cost+'"></i>coût <i class="lg" style="background:'+PAL.ben+'"></i>bénéfice':'<i class="lg" style="background:'+PAL.vol+'"></i>quantités vendues';
+  const rp=Object.values(gp).map(g=>({nom:g.nom,ca:somme(g.l,'ca'),ben:somme(g.l,'benefice'),q:somme(g.l,'qte')})).map(g=>({nom:g.nom,ca:g.ca,ben:g.ben,v:anProd==='ca'?g.ca:g.q,sub:g.q+' vendu'+(g.q>1?'s':'')})).sort((a,b)=>b.v-a.v).slice(0,5);
+  document.getElementById('an-leg-p').innerHTML=anProd==='ca'?'<i class="lg" style="background:#F5A623"></i>coût <i class="lg" style="background:#2ECC8A"></i>bénéfice':'<i class="lg" style="background:#5B8CFF"></i>quantités vendues';
   document.getElementById('an-produits').innerHTML=rp.length?rangHTML(rp,anProd):vide('Aucune vente');
-  // --- Rentabilité : volume × marge ---
-  const mb=document.getElementById('an-matrice'),md=document.getElementById('an-matrice-d');
-  const rows=lp.map(g=>({nom:g.nom,q:g.q,ca:g.ca,ben:g.ben,marge:g.ca>0?g.ben/g.ca*100:0})).sort((a,b)=>b.ben-a.ben);
-  if(rows.length<2){mb.innerHTML=vide('Il faut au moins 2 produits vendus pour comparer');md.innerHTML='';}
-  else{const w=Math.max(mb.clientWidth,260),qs=rows.map(r=>r.q).sort((a,b)=>a-b),qm=qs[Math.floor(qs.length/2)],sel=anSelP!==null&&rows[anSelP]?anSelP:0;
-    mb.innerHTML=matriceHTML(w,rows,marge,sel);const r=rows[sel];
-    md.innerHTML='<div><b>'+esc(r.nom)+'</b> · '+r.q+' vendu'+(r.q>1?'s':'')+' · marge '+Math.round(r.marge)+'% · bénéfice '+fcfa(r.ben)+'</div><span>'+conseilP(r,qm,marge)+'</span>';}
-  // --- Jours de la semaine (moyenne par jour) ---
+  // --- Jours de la semaine (moyenne par jour : précis même sur plusieurs semaines) ---
   const occ=[0,0,0,0,0,0,0],tot=[0,0,0,0,0,0,0];
   if(cur.length&&d0<d1){let n=0;for(let d=d0;d<=d1&&n<4000;d=plusJours(d,1),n++)occ[(dUTC(d).getUTCDay()+6)%7]++;
     cur.forEach(v=>{const d=(v.date||'').slice(0,10);if(d)tot[(dUTC(d).getUTCDay()+6)%7]+=Number(v.ca)||0;});}
-  const moy=tot.map((s,i)=>occ[i]?s/occ[i]:0),mm=Math.max(...moy),best=moy.indexOf(mm),L=['L','M','M','J','V','S','D'],nsem=Math.max(...occ);
+  const moy=tot.map((s,i)=>occ[i]?s/occ[i]:0),mm=Math.max(...moy),best=moy.indexOf(mm),L=['L','M','M','J','V','S','D'];
+  const nsem=Math.max(...occ);
   document.getElementById('an-jours-s').textContent=nsem>1?'moyenne par jour · sur '+nsem+' semaines':'moyenne par jour';
-  const jb=document.getElementById('an-jours');
+  const joursBox=document.getElementById('an-jours');
   if(mm>0){const sel=(anJour!==null&&occ[anJour]>0)?anJour:best,nom=JN[sel];
-    jb.innerHTML='<div class="an-wk">'+moy.map((v,i)=>'<div class="an-col'+(i===best?' best':'')+(i===sel?' sel':'')+'" onclick="anPickJour('+i+')"><div class="an-cv">'+(occ[i]&&v?abrege(v):'')+'</div><div class="an-cb"><i data-h="'+Math.max(3,Math.round(v/mm*100))+'"></i></div><div class="an-cl">'+L[i]+'</div></div>').join('')+'</div>'+
-      '<div class="an-det"><div><b>'+nom.charAt(0).toUpperCase()+nom.slice(1)+'s</b> · '+fcfa(moy[sel])+' en moyenne par '+nom+'</div><span>'+occ[sel]+' '+nom+(occ[sel]>1?'s':'')+' sur la période · total '+fcfa(tot[sel])+(sel===best&&occ.filter(x=>x>0).length>1?' · <b class="ok">jour le plus fort</b>':'')+'</span></div>';}
-  else jb.innerHTML=vide(d0===d1?'Choisis une semaine ou plus pour comparer les jours':'Aucune vente');
-  // --- Santé du stock : rythme (jours restants) ou stock qui dort ---
-  const refD0=nbJours(d0,d1)>=30?d0:plusJours(t,-29),refV=ventesEntre(base,refD0,t),nref=nbJours(refD0,t);
-  const qj={};refV.forEach(v=>{qj[String(v.produitId)]=(qj[String(v.produitId)]||0)+(Number(v.qte)||0);});
-  const enStock=DB.produits.filter(p=>(Number(p.stock)||0)>0);
-  const rythme=enStock.map(p=>{const q=qj[String(p.id)]||0,jr=q>0?Number(p.stock)/(q/nref):null;return{nom:p.nom,stock:Number(p.stock),v:q/nref,jours:jr,val:Number(p.stock)*(Number(p.achat)||0)};}).sort((a,b)=>(a.jours===null)-(b.jours===null)||(a.jours-b.jours));
-  const cogs=somme(refV,'coutAchat'),capital=enStock.reduce((s,p)=>s+Number(p.stock)*(Number(p.achat)||0),0),moisStock=cogs>0?capital/(cogs/nref)/30:null;
+    joursBox.innerHTML='<div class="an-wk">'+moy.map((v,i)=>'<div class="an-col'+(i===best?' best':'')+(i===sel?' sel':'')+'" onclick="anPickJour('+i+')"><div class="an-cv">'+(occ[i]&&v?abrege(v):'')+'</div><div class="an-cb"><i data-h="'+Math.max(3,Math.round(v/mm*100))+'"></i></div><div class="an-cl">'+L[i]+'</div></div>').join('')+'</div>'+
+      '<div class="an-det"><b>'+nom.charAt(0).toUpperCase()+nom.slice(1)+'s</b> · '+fcfa(moy[sel])+' en moyenne par '+nom+'<br><span>'+occ[sel]+' '+nom+(occ[sel]>1?'s':'')+' sur la période · total '+fcfa(tot[sel])+(sel===best&&occ.filter(x=>x>0).length>1?' · <b class="ok">jour le plus fort</b>':'')+'</span></div>';}
+  else joursBox.innerHTML=vide(d0===d1?'Choisis une semaine ou plus pour comparer les jours':'Aucune vente');
+  // --- Stock qui dort ---
   const vendus=new Set(cur.map(v=>String(v.produitId)));
-  const dort=enStock.filter(p=>!vendus.has(String(p.id))).map(p=>({nom:p.nom,stock:Number(p.stock),val:Number(p.stock)*(Number(p.achat)||0)})).sort((a,b)=>b.val-a.val);
-  const vd=dort.reduce((s,p)=>s+p.val,0),vmax=Math.max(1,...dort.map(p=>p.val)),sb=document.getElementById('an-stockbox'),ss=document.getElementById('an-stock-s');
-  if(anStock==='rythme'){
-    ss.innerHTML=moisStock!==null?'= <b>'+(moisStock<1?Math.round(moisStock*30)+' jours':moisStock.toFixed(1).replace('.',',')+' mois')+'</b> de ventes':'rythme '+nref+' derniers jours';
-    sb.innerHTML=rythme.length?rythme.map((p,i)=>{const st=p.jours===null?'dort':p.jours<15?'bas':p.jours<=60?'ok':'large',cap=Math.min(120,p.jours===null?120:p.jours),lbl=p.jours===null?'aucune vente':(p.jours<1?'< 1 j':Math.round(p.jours)+' j');
-      return'<div class="an-dz"><div class="an-dz-top"><span class="an-nom">'+esc(p.nom)+'</span><span class="an-big s-'+st+'">'+lbl+'</span></div><div class="an-dz-m"><div class="an-bw" data-w="'+Math.max(4,Math.round(cap/120*100))+'" style="--d:'+(i*50)+'ms"><i class="an-bs s-'+st+'" style="flex:1"></i></div></div><div class="an-rk-sub"><span>stock : '+p.stock+' unité'+(p.stock>1?'s':'')+'</span><span>'+(st==='bas'?'à réapprovisionner':st==='dort'?'aucune vente':st==='large'?'stock confortable':'rythme correct')+'</span></div></div>';}).join(''):vide('Aucun produit en stock');
-  }else{
-    ss.innerHTML=dort.length?'<b style="color:'+PAL.bad+'">'+abrege(vd)+' F immobilisés</b>':'';
-    sb.innerHTML=dort.length?dort.map((p,i)=>'<div class="an-dz"><div class="an-dz-top"><span class="an-nom">'+esc(p.nom)+'</span><span class="an-big">'+abrege(p.val)+' F</span></div><div class="an-dz-m"><div class="an-bw" data-w="'+Math.max(6,Math.round(p.val/vmax*100))+'" style="--d:'+(i*60)+'ms"><i class="an-bs s-dort" style="flex:1"></i></div></div><div class="an-rk-sub"><span>stock : '+p.stock+' unité'+(p.stock>1?'s':'')+'</span><span>aucune vente sur la période</span></div></div>').join(''):vide('Tous tes produits en stock se sont vendus sur cette période ✓');
-  }
-  // --- À retenir : ce que les chiffres disent vraiment ---
-  const ins=[],nj=nbJours(d0,d1);
-  if(!cur.length)ins.push(['info','Aucune vente sur cette période.']);
+  const dort=DB.produits.filter(p=>(Number(p.stock)||0)>0&&!vendus.has(String(p.id))).map(p=>({nom:p.nom,stock:Number(p.stock),val:Number(p.stock)*(Number(p.achat)||0)})).sort((a,b)=>b.val-a.val);
+  const vd=dort.reduce((s,p)=>s+p.val,0),vmax=Math.max(1,...dort.map(p=>p.val));
+  document.getElementById('an-dort-tot').innerHTML=dort.length?'<b style="color:#FF7B7B">'+abrege(vd)+' F immobilisés</b>':'';
+  document.getElementById('an-dort').innerHTML=dort.length?dort.map((p,i)=>'<div class="an-dz"><div class="an-dz-top"><span class="an-nom">'+esc(p.nom)+'</span><span class="an-big">'+abrege(p.val)+' F</span></div><div class="an-dz-m"><div class="an-bw" data-w="'+Math.max(6,Math.round(p.val/vmax*100))+'" style="--d:'+(i*60)+'ms"><i class="an-bd" style="flex:1"></i></div></div><div class="an-rk-sub"><span>stock : '+p.stock+' unité'+(p.stock>1?'s':'')+'</span><span>aucune vente</span></div></div>').join(''):vide('Tous tes produits en stock se sont vendus sur cette période ✓');
+  // --- Points clés ---
+  const ins=[];
+  if(!cur.length)ins.push(['ℹ️','Aucune vente sur cette période.']);
   else{
-    if(rv[0])ins.push(['award','Meilleur vendeur : <b>'+esc(rv[0].nom)+'</b> ('+Math.round(rv[0].v/ca*100)+'% du chiffre d\'affaires)']);
-    const top=lp.slice().sort((a,b)=>b.q-a.q)[0];
-    if(top)ins.push(['star','Produit star : <b>'+esc(top.nom)+'</b> ('+top.q+' vendu'+(top.q>1?'s':'')+')']);
-    const pj={};cur.forEach(v=>{const d=(v.date||'').slice(0,10);if(d)pj[d]=(pj[d]||0)+(Number(v.ca)||0);});const jours=Object.keys(pj);
-    if(jours.length>=2){const bd=jours.sort((a,b)=>pj[b]-pj[a])[0],dd=dUTC(bd),multi=d0.slice(0,4)!==d1.slice(0,4);ins.push(['cal','Meilleur jour : <b>'+JN[(dd.getUTCDay()+6)%7]+' '+dateCourte(bd,multi)+'</b> · '+abrege(pj[bd])+' F']);}
-    if(periode.mode==='mois'&&enCours&&nbJours(plagePeriode().debut,t)>=5){const dm=nbJours(plagePeriode().debut,plagePeriode().fin),ecoules=nbJours(plagePeriode().debut,t),proj=ca/ecoules*dm;
-      ins.push(['target','À ce rythme, tu finis le mois à <b>'+abrege(proj)+' F</b>'+(pca?' (mois dernier : '+abrege(pca)+' F)':'')]);}
-    else if(mm>0&&nj>=20)ins.push(['repeat','Jour le plus fort en moyenne : <b>les '+JN[best]+'s</b> ('+abrege(mm)+' F par '+JN[best]+')']);
-    const sorted=lp.slice().sort((a,b)=>b.ca-a.ca);let acc=0,k=0;for(const p of sorted){acc+=p.ca;k++;if(acc>=ca*.8)break;}
-    if(sorted.length>=4)ins.push(['bars','<b>'+k+' produit'+(k>1?'s':'')+' sur '+sorted.length+'</b> font 80% de ton chiffre d\'affaires']);
-    const faibles=rythme.filter(p=>p.jours!==null&&p.jours<15);
-    if(faibles.length)ins.push([['alert','bad'],'Stock bientôt vide : <b>'+esc(faibles[0].nom)+'</b> (≈ '+Math.max(1,Math.round(faibles[0].jours))+' jour'+(faibles[0].jours>=1.5?'s':'')+')'+(faibles.length>1?' et '+(faibles.length-1)+' autre'+(faibles.length>2?'s':''):'')]);
-    if(pca!==null&&pca>0){const r=Math.round((ca-pca)/pca*100);ins.push([r>=0?['trend','up']:['down','dn'],'Chiffre d\'affaires en '+(r>=0?'hausse':'baisse')+' de <b>'+Math.abs(r)+'%</b> vs période précédente']);}
-    const parRecu=nb?cur.length/nb:0;if(nb>=5)ins.push(['basket','Panier moyen : <b>'+abrege(ca/nb)+' F</b> · '+parRecu.toFixed(1).replace('.',',')+' article'+(parRecu>=1.5?'s':'')+' par vente']);
+    if(rv[0])ins.push(['🏆','Meilleur vendeur : <b>'+esc(rv[0].nom)+'</b> ('+Math.round(rv[0].v/ca*100)+'% du chiffre d\'affaires)']);
+    const top=Object.values(gp).map(g=>({nom:g.nom,q:somme(g.l,'qte')})).sort((a,b)=>b.q-a.q)[0];
+    if(top)ins.push(['⭐','Produit star : <b>'+esc(top.nom)+'</b> ('+top.q+' vendu'+(top.q>1?'s':'')+')']);
+    const pj={};cur.forEach(v=>{const d=(v.date||'').slice(0,10);if(d)pj[d]=(pj[d]||0)+(Number(v.ca)||0);});
+    const jours=Object.keys(pj);
+    if(jours.length>=2){const bd=jours.sort((a,b)=>pj[b]-pj[a])[0],dd=dUTC(bd),multi=d0.slice(0,4)!==d1.slice(0,4);
+      ins.push(['📅','Meilleur jour : <b>'+JN[(dd.getUTCDay()+6)%7]+' '+dateCourte(bd,multi)+'</b> · '+abrege(pj[bd])+' F']);}
+    if(mm>0&&Math.round((dUTC(d1)-dUTC(d0))/864e5)>=20)ins.push(['🔁','Jour le plus fort en moyenne : <b>les '+JN[best]+'s</b> ('+abrege(mm)+' F par '+JN[best]+')']);
+    if(pca!==null&&pca>0){const r=Math.round((ca-pca)/pca*100);ins.push([r>=0?'📈':'📉','Chiffre d\'affaires en '+(r>=0?'hausse':'baisse')+' de <b>'+Math.abs(r)+'%</b> vs période précédente']);}
+    ins.push(['💰','Marge moyenne : <b>'+Math.round(marge)+'%</b>']);
   }
-  if(dort.length)ins.push(['moon','<b>'+dort.length+' produit'+(dort.length>1?'s':'')+'</b> sans vente · '+abrege(vd)+' F immobilisés en stock']);
-  document.getElementById('an-ins').innerHTML=ins.slice(0,8).map(([i,t])=>'<div class="an-ins"><span class="an-ii'+(Array.isArray(i)&&i[1]?' '+i[1]:'')+'">'+ico(Array.isArray(i)?i[0]:i,16)+'</span><div>'+t+'</div></div>').join('');
+  if(dort.length)ins.push(['😴','<b>'+dort.length+' produit'+(dort.length>1?'s':'')+'</b> sans vente · '+abrege(vd)+' F immobilisés en stock']);
+  document.getElementById('an-ins').innerHTML=ins.slice(0,7).map(([i,t])=>'<div class="an-ins"><span>'+i+'</span><div>'+t+'</div></div>').join('');
+  // --- animations d'entrée (barres et colonnes qui se déploient) ---
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     sec.querySelectorAll('.an-bw[data-w]').forEach(e=>{e.style.width=e.dataset.w+'%';});
     sec.querySelectorAll('.an-cb i[data-h]').forEach(e=>{e.style.height=e.dataset.h+'%';});
